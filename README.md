@@ -3,115 +3,115 @@
 </p>
 
 
-# Structural product architecture - Catenator
+**The open standard for the specs you feed AI to get a system.**
 
-**Catenator**  by Engaged Inquiry is a [technical methodology](/docs/architecture.md) for assembling product specifications from atomic logic components. It treats product requirements not as prose, but as a library of composable, machine-readable data objects.
+Catenator is a specification standard for schema-driven development of systems. The spec is the structured description of a system — what it consists of, what it requires, and how its parts relate — expressed in a format that any agent, tool, or team can read and build from.
 
-By moving the industry from conversational capture to structural assembly, **Catenator** ensures that AI-generated output is production-ready, measurable, and technically hardened. This structural approach enables two critical infrastructure scenarios for modern AI development:
-
-## System prompt caching for zero-latency assembly
-
-By storing logic in a structured, versioned registry, the entire **Catenator** library can be bundled into an LLM's system prompt cache. This turns the AI into a stateful architect that already "knows" your global standards and logic atoms. When you provide a specific project manifest, the AI retrieves the required versioned components from its active memory, resulting in near-instant generation and significant token cost savings.
-
-## Semantic discovery through ML indexing
-
-Every caten includes a metadata block designed for vector-based ML indexing. This allows for retrieval-augmented generation (rag) where the AI can find relevant logic through semantic meaning rather than exact file names. If a user describes a need—such as "secure user session handling"—the ML index identifies the most relevant macro standards and micro atoms based on their logical intent. This enables the system to suggest the most "hardened" components for a new assembly automatically.
+The spec precedes the system. The system is produced from the spec. Given the same spec, the same system can be produced again.
 
 ---
-
-### Implementation note
-
-To support both scenarios, ensure every `.yaml` file maintains a high "descriptive density" in the `metadata` block. The `id` and `version` fields serve the **caching** scenario by providing absolute addresses, while the `intent` and `tags` fields serve the **ML indexing** scenario by providing the necessary surface area for semantic embeddings.
-
----
-
-[Get started]('/docs/getting_started.md') with the **Catenator** ecosystem.
-
-[Roadmap](roadmap.md)
-
----
-
-## What is a Catenator?
-
-The term **Catenator** refers to a person or system that chains items together to form a connected series. In the context of product development, a **Catenator** is the architect who takes discrete logic "atoms" and "meso" modules and chains them into a rigorous, unified technical specification. This process of catenation transforms fragmented ideas into a hardened backbone for software.
 
 ## The problem
 
-As AI-generated code becomes the industry standard, the bottleneck has shifted from writing code to maintaining context. Standard product requirements documents (PRDs) are monolithic, static, and prone to context drift—the phenomenon where AI-generated code slowly loses alignment with the original product goal because the input specs are imprecise.
+Every system has an intention-implementation gap: the persistent distance between what the system was meant to be and what was actually built. Git is version control. A PRD is interpreted prose. Neither closes the gap structurally.
 
-## The solution
-
-The **Catenator** framework is a technical methodology for assembling product specifications from atomic logic components. It treats product requirements not as prose, but as a library of composable, machine-readable data objects. By moving the industry from conversational capture to structural assembly, **Catenator** ensures that AI-generated output is production-ready, measurable, and technically hardened.
-
-## Core philosophy
-
-* **Design first, assemble second, generate third:** Avoid conversational loops with AI. Assemble a validated logic manifest first to ensure the generative output has a hardened backbone.
-* **Atomic integrity:** Logic is stored in versioned micro-atoms. This prevents redundancy and context drift by ensuring every assembly points to a single, objective source of truth.
-* **Machine-readability:** Pure yaml structures allow for system prompt caching and semantic ml indexing, turning your documentation into a high-performance logic registry.
-* **Interoperability by design:** Catenator is built as an open standard. By using a vendor-neutral logic grammar, manifests can be shared across different teams, AI models, and development environments without translation loss.
-* **Open standard governance:** Similar to the evolution of openapi, catenator provides a public, schema-validated framework that allows the industry to move toward a collective library of hardened product logic.
+Catenator closes it. The spec is the ground truth — not documentation of decisions already made, but the precondition for making them.
 
 ---
 
-## Why an open standard?
+## The standard
 
-By open-sourcing the schemas for macros, mesos, and micros, **Catenator** is establishing a "logic handshake" between the human architect and the machine executor. This ensures that any component built today remains compatible with the AI orchestrators of tomorrow.
+A Catenator spec describes one thing: a **system**. A system is whatever is being designed and built — a pharmacy, a SaaS platform, a publishing house, a grain elevator.
 
-## The hierarchy
+Every system is specified through **thirteen descriptors**:
 
-* **[Macro (standards)](/library/macros/README.md):** Global yaml rules such as security protocols, system personas, and ux standards.
-* **[Meso (modules)](/library/mesos/README.md):** Versioned manifests that chain micro atoms into functional features.
-* **[Micro (atoms)](/library/micros/README.md):** The smallest units of objective logic like field validations, triggers, or mappings.
-
-
-## Features
-
-* **Schema-Validated:** Every spec is validated against `schema.yaml` to ensure technical completeness.
-* **Catenator Ready:** Designed to be "catenated" (assembled) from multiple Markdown sources into a single source of truth.
-* **Ready Check 2.0:** Moving beyond manual checklists to an automated `validation_score` (1-5) based on structural metadata.
-* **AI-Native:** Optimized for RAG (Retrieval-Augmented Generation) and high-fidelity code generation.
-
-## A unified specification for the whole team
-
-The **Catenator** framework creates a common structural language that satisfies the distinct needs of the product, design, and engineering teams.
-
-* **Product managers:** Use **Catenator** to move from vague ideas to hardened logic and objectively measure progress with the **Ready Check** score.
-* **Designers:** Define UI states and behavioral triggers as atoms, ensuring no "missing screens" are discovered during development.
-* **Developers:** Feed the hardened YAML output directly into AI coding assistants for high-fidelity, zero-shot code generation.
-
-## Why YAML structure beats standard text
-
-While most product teams rely on unstructured Markdown or Notion pages, the **Catenator** framework uses a strict YAML schema to create a technical moat:
-
-1. **Machine-readable validation:** Enforce error handling and empty states programmatically.
-2. **Token efficiency:** Provide AI models with a clear map of relationships to reduce hallucinations.
-3. **Programmatic assembly:** Merge and transform specs into different views (Minimal vs. Default) without manual editing.
-
-
-## About 
-
-**Catenator** was designed and is maintained by **[Parth Upadhye](https://www.linkedin.com/in/parth-upadhye)**, author of **[Spec-driven development with AI](https://www.amazon.com/dp/B0GNSTYJ6W)**.
-
-> As a product architect, my work focuses on the intersection of systems thinking and AI-assisted engineering. I developed **Catenator** to solve the context collapse that occurs when scaling complex products with LLMs. In an open-source context, I serve as the lead architect and maintainer of these schemas to ensure a standardized grammar for the next generation of product management.
-
-
-## Getting started
-
-The **Catenator** ecosystem is currently evolving.
-
-* **The manual:** Start with our [getting started guide](/docs/getting_started.md) for a step-by-step walkthrough.
-* **The metric:** Learn how we quantify spec quality in the [readiness score guide](/docs/readiness_score.md).
-* **Documentation library:** Use the provided templates in `/templates` to begin building your own library.
-
-
-## Contributing
-
-This project is maintained as a rigorous, architectural standard for AI-assisted product development. [We welcome contributions](contributing.md) that help refine this "unified grammar."
+| Descriptor | Specifies |
+|---|---|
+| `domain` | the vocabulary and rules governing it |
+| `model` | the data structures it operates on |
+| `component` | the discrete, reusable pieces it is made of |
+| `service` | the capabilities it exposes or consumes |
+| `operation` | the individual operations it performs |
+| `actor` | who or what interacts with it |
+| `event` | what it must respond to |
+| `rule` | internal or external constraints it must enforce |
+| `process` | the workflows it executes |
+| `integration` | its boundaries with external systems |
+| `utility` | what it does for whom and to what end |
+| `risk` | what can go wrong, how likely, and who bears it |
 
 ---
 
-## License
+## The format
 
-This framework (the schemas and templates) is released under the **MIT License**. Use it to build better software.
+Specs are written in YAML. Machine-readable, version-controlled, composable.
+
+```yaml
+system: publishing-platform
+version: 0.1.0
+domain: editorial
+
+actors:
+  - id: author
+    type: human
+    description: Submits manuscripts for review and publication
+
+rules:
+  - id: proof-approval
+    type: internal
+    constraint: A proof status cannot revert from approved to pending
+```
 
 ---
+
+## The vocabulary
+
+Every domain has its own terms. Catenator's normative vocabulary formally defines terms used in specs — giving shared meaning to words like `proof`, `manuscript`, `edition`, and `rights` so that any agent or team reading the spec understands them the same way.
+
+The vocabulary is organized into clusters. Each term is defined with its descriptor, type, attributes, relationships, and constraints.
+
+Vocabulary is free to use commercially. The canonical document is published by Engaged Inquiry.
+
+---
+
+## The -ilities
+
+A valid Catenator spec is:
+
+- **Reproducible** — the same spec produces the same system
+- **Compilable** — build instructions are derivable without human interpretation
+- **Traceable** — every system decision traces back to a descriptor
+- **Composable** — specs reference and build on other specs
+- **Extensible** — new domains and vocabularies can be added without breaking existing specs
+- **Portable** — any conforming agent or tool can read and act on the spec
+
+---
+
+## The four layers
+
+| Layer | What it is |
+|---|---|
+| **Standard** | System + thirteen descriptors |
+| **Format** | YAML, machine-readable, version-controlled |
+| **Methodology** | Spec-driven development as practice |
+| **Intelligence layer** | Validation, readiness scoring, generation — coming |
+
+---
+
+## Licensing
+
+| Layer | License |
+|---|---|
+| Framework | CC BY 4.0 |
+| YAML schema | Apache 2.0 |
+| Normative vocabulary | CC BY 4.0 — EI copyright on canonical document |
+| Intelligence layer | Proprietary |
+
+---
+
+## Status
+
+The standard is in active development. The vocabulary, schema, and v1.0 framework are being published here as they are completed.
+
+**© 2026 Parth Upadhye / Engaged Inquiry**
+
