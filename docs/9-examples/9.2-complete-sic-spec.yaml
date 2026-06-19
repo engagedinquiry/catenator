@@ -1,0 +1,189 @@
+# Catenator spec — [sic] publishing imprint
+# Section 9.2 — Complete spec worked example
+# Catenator standard documentation
+
+spec:
+  version: "1.0.0"
+  authored: "2026-06-18"
+  status: ground-truth
+  standard-version: "1.0.0"
+  vocabulary-version: "3.0.0"
+
+system:
+  name: sic-publishing
+  display-name: "[sic]"
+  display-name-source: authored
+  specimen: publishing-imprint
+  attachments:
+    - ref: sic-brief.md
+      role: source
+      notes: "The governing brief for the [sic] imprint."
+
+# ── What [sic] is ──────────────────────────────────────────────────────────────
+# [sic] is a satirical publishing imprint.
+# It produces card-format definitions of business jargon.
+# Every order produces a unique book — assembled from the catalogue
+# at the time of order. No two orders are identical.
+
+macros:
+
+  # ── CATALOGUE ────────────────────────────────────────────────────────────────
+  - name: catalogue
+    display-name: "Catalogue"
+    display-name-source: authored
+    source: "The library of cards. Each card is a satirical definition of one term. The catalogue grows. Books are assembled from whatever is in the catalogue at the time of order."
+    mesos:
+
+      - name: catalogue.card
+        display-name: "Card"
+        display-name-source: authored
+        source: "A card is the atomic unit of [sic]. One term. One definition."
+        micros:
+          - name: card-structure
+            display-name: "Card structure"
+            display-name-source: authored
+            descriptor: model
+            definition: "A card has a term, a satirical definition, a domain tag, and a visual treatment. The term is a piece of business jargon. The definition satirises its use without explaining it. The domain tag places it in a category."
+          - name: card-visual
+            display-name: "Card visual treatment"
+            display-name-source: authored
+            descriptor: model
+            definition: "Each card has a typographic layout designed in the authoring tool and exported as a vector file. The visual treatment is authored once. Colour is applied at assembly time, not at design time."
+          - name: card-domain
+            display-name: "Domain tag"
+            display-name-source: authored
+            descriptor: model
+            definition: "Each card belongs to one domain: strategy, operations, talent, finance, technology, or culture. Domain tags govern which cards appear together in a themed book."
+
+      - name: catalogue.collection
+        display-name: "Collection"
+        display-name-source: authored
+        source: "Cards are grouped into collections. A collection is a curated subset of the catalogue around a theme."
+        micros:
+          - name: collection-structure
+            display-name: "Collection structure"
+            display-name-source: authored
+            descriptor: model
+            definition: "A collection has a name, a set of domain tags it draws from, a minimum and maximum card count, and an ordering rule. Collections are defined by the author. They are not generated."
+          - name: collection-rule
+            display-name: "Collection completeness rule"
+            display-name-source: authored
+            descriptor: rule
+            definition: "A collection cannot be assembled if the catalogue contains fewer cards in the required domains than the collection's minimum card count. The system must reject the assembly, not produce a short book."
+
+  # ── ASSEMBLY ─────────────────────────────────────────────────────────────────
+  - name: assembly
+    display-name: "Assembly"
+    display-name-source: authored
+    source: "Every order produces a unique book. The assembly pipeline selects cards, applies colour, collates pages, and produces a print-ready file. No two orders are identical."
+    mesos:
+
+      - name: assembly.selection
+        display-name: "Card selection"
+        display-name-source: authored
+        source: "Cards are selected from the catalogue at the time of order. Selection is governed by the collection definition and a randomisation rule."
+        micros:
+          - name: selection-process
+            display-name: "Selection process"
+            display-name-source: authored
+            descriptor: process
+            definition: "Given a collection definition: draw the required number of cards from the eligible domain tags. Apply the randomisation rule. Check that the result satisfies the minimum count. If not, reject and report — do not assemble a short book."
+          - name: randomisation-rule
+            display-name: "Randomisation rule"
+            display-name-source: authored
+            descriptor: rule
+            definition: "Card selection within a domain is random. The random seed is the order ID. Given the same order ID and the same catalogue state, the selection must be reproducible. This ensures a rejected order can be reprocessed identically."
+          - name: uniqueness-rule
+            display-name: "Uniqueness rule"
+            display-name-source: authored
+            descriptor: rule
+            definition: "No two orders in the same calendar month may produce the same card sequence. If a sequence collision is detected, a new random seed is applied. Uniqueness is per order, per month — not per all-time."
+
+      - name: assembly.colour
+        display-name: "Colour application"
+        display-name-source: authored
+        source: "Colour is not part of the card design. It is applied at assembly time. Each order receives a colour assignment."
+        micros:
+          - name: colour-assignment
+            display-name: "Colour assignment"
+            display-name-source: authored
+            descriptor: operation
+            definition: "Each order is assigned a colour palette from the authorised palette set. The assignment is deterministic from the order ID — the same order always produces the same colour. Colour assignment happens before collation."
+          - name: colour-substitution
+            display-name: "Colour substitution"
+            display-name-source: authored
+            descriptor: operation
+            definition: "The assembly pipeline replaces the placeholder colour in each card's vector file with the assigned palette colour. Substitution is applied to all cards in the order before collation begins."
+          - name: palette-set
+            display-name: "Authorised palette set"
+            display-name-source: authored
+            descriptor: model
+            definition: "The palette set is a curated list of colour assignments authored by the imprint. New palettes are added by the author only. The pipeline cannot generate palettes — it selects from the authorised set."
+
+      - name: assembly.collation
+        display-name: "Collation and output"
+        display-name-source: authored
+        source: "Selected, coloured cards are assembled into a document and rendered to a print-ready file."
+        micros:
+          - name: collation-process
+            display-name: "Collation process"
+            display-name-source: authored
+            descriptor: process
+            definition: "Cards are ordered per the collection's ordering rule (alphabetical, domain-grouped, or random). Front matter and back matter are prepended and appended. The assembled document is passed to the rendering engine."
+          - name: rendering
+            display-name: "Print-ready rendering"
+            display-name-source: authored
+            descriptor: operation
+            definition: "The collated document is rendered to a PDF file meeting the print specifications: page dimensions, bleed, colour profile, and resolution as required by the fulfillment partner."
+          - name: output-validation
+            display-name: "Output validation"
+            display-name-source: authored
+            descriptor: rule
+            definition: "The rendered PDF must be validated against the print specification before being passed to fulfillment. A PDF that fails validation must not be submitted. The order is held and the failure reported."
+
+  # ── FULFILLMENT ──────────────────────────────────────────────────────────────
+  - name: fulfillment
+    display-name: "Fulfillment"
+    display-name-source: authored
+    source: "The order is processed, the assembled file is submitted to the print partner, and the book is delivered to the reader."
+    mesos:
+
+      - name: fulfillment.order
+        display-name: "Order"
+        display-name-source: authored
+        micros:
+          - name: order-model
+            display-name: "Order"
+            display-name-source: authored
+            descriptor: model
+            definition: "An order has an identifier, a collection selection, a delivery address, a status, and a reference to the assembled output file. The order identifier is the seed for all randomisation in the assembly stage."
+          - name: order-states
+            display-name: "Order states"
+            display-name-source: authored
+            descriptor: model
+            definition: "An order moves through: received, assembling, validation-failed, assembled, submitted, fulfilled, failed. Only assembled orders may be submitted. Failed orders must not be retried automatically."
+
+      - name: fulfillment.print-partner
+        display-name: "Print partner integration"
+        display-name-source: authored
+        micros:
+          - name: submission
+            display-name: "File submission"
+            display-name-source: authored
+            descriptor: integration
+            definition: "The validated PDF and the order record are submitted to the print partner. The print partner returns a confirmation and a tracking reference. The tracking reference is stored against the order."
+          - name: submission-failure
+            display-name: "Submission failure"
+            display-name-source: authored
+            descriptor: risk
+            definition: "If the print partner rejects the submission, the order status is set to failed and the rejection reason is recorded. The order is not retried automatically. Manual review is required before resubmission."
+
+      - name: fulfillment.utility
+        display-name: "Reader utility"
+        display-name-source: authored
+        micros:
+          - name: reader-utility
+            display-name: "Reader utility"
+            display-name-source: authored
+            descriptor: utility
+            definition: "The reader receives a book that is unique to their order — assembled from the catalogue at the time they ordered, in a colour assigned to their order, in a sequence no other reader this month has received. The book is a physical object. It is not reprinted."

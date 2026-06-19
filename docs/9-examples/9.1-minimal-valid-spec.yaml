@@ -1,0 +1,52 @@
+# Catenator spec — minimal valid example
+# Section 9.1 — Catenator standard documentation
+#
+# This is the smallest spec that satisfies the standard.
+# One system, one macro, two mesos, three micros.
+# Every required field is present. No optional fields are used.
+
+spec:
+  version: "1.0.0"
+  authored: "2026-06-18"
+  status: draft
+  standard-version: "1.0.0"
+
+system:
+  name: cafe-ordering
+  display-name: "Café table ordering"
+  display-name-source: inferred
+
+macros:
+
+  - name: ordering
+    display-name: "Ordering"
+    display-name-source: inferred
+    source: "Diners browse a menu and place orders from their table."
+    mesos:
+
+      - name: ordering.menu
+        display-name: "Menu"
+        display-name-source: inferred
+        source: "Diners browse available items before selecting."
+        micros:
+          - name: menu-item
+            display-name: "Menu item"
+            display-name-source: inferred
+            descriptor: model
+            definition: "A named, priced item available for selection. Has a name, a price, and a category."
+
+      - name: ordering.cart
+        display-name: "Order"
+        display-name-source: inferred
+        source: "Diners accumulate selected items before submitting to the kitchen."
+        micros:
+          - name: cart
+            display-name: "Order"
+            display-name-source: inferred
+            descriptor: model
+            definition: "The collection of items a diner has selected. Accumulates until submitted. Belongs to one diner at one table."
+          - name: submit-order
+            display-name: "Submit order"
+            display-name-source: inferred
+            descriptor: operation
+            definition: "The diner sends their accumulated order to the kitchen. The order is then immutable."

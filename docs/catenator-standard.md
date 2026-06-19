@@ -77,3 +77,10 @@ Across the industry, a spec is emerging as the primary artifact of software deve
 - [9.1 Minimal valid spec](9-examples/9.1-minimal-valid-spec.md)
 - [9.2 Complete SIC spec](9-examples/9.2-complete-sic-spec.md)
 - [9.3 Reading a spec as an agent](9-examples/9.3-reading-a-spec-as-an-agent.md)
+
+
+---
+
+*© 2026 Parth Upadhye / Engaged Inquiry*
+
+---
