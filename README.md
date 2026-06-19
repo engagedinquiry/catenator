@@ -3,27 +3,37 @@
 </p>
 
 
-**The open standard for the specs you feed AI to get a system.**
+**The open standard for writing a spec.**
 
-Catenator is a specification standard for schema-driven development of systems. The spec is the structured description of a system — what it consists of, what it requires, and how its parts relate — expressed in a format that any agent, tool, or team can read and build from.
+Software is becoming something you specify, not something you write. The code is still produced — but by agents, tools, and teams working from structured descriptions of what the system must be.
 
-The spec precedes the system. The system is produced from the spec. Given the same spec, the same system can be produced again.
+A spec is a structured description of a system — written for an agent. It is not instructions. It is not a prompt. It tells an agent enough about what the system is so that the agent can determine what to do next itself.
 
----
+Catenator is the open standard for writing one.
 
-## The problem
-
-Every system has an intention-implementation gap: the persistent distance between what the system was meant to be and what was actually built. Git is version control. A PRD is interpreted prose. Neither closes the gap structurally.
-
-Catenator closes it. The spec is the ground truth — not documentation of decisions already made, but the precondition for making them.
+**A Catenator spec is what you give an agent instead of instructions.**
 
 ---
 
-## The standard
+## What Catenator is
 
-A Catenator spec describes one thing: a **system**. A system is whatever is being designed and built — a pharmacy, a SaaS platform, a publishing house, a grain elevator.
+A Catenator spec describes what a system consists of, what it requires, and how its parts relate — in a format that any agent, tool, or team can read and build from.
 
-Every system is specified through **thirteen descriptors**:
+The spec precedes the system. Given the same spec, the same system can be produced again. From any valid spec, build instructions can be generated. Every part of the system produced is traceable back to the spec decision that required it.
+
+Specs compose. Any spec can connect with any other. Any vocabulary term can be referenced across domains. Systems can be assembled from existing parts without reinventing what already exists.
+
+---
+
+## The coordinate model
+
+A Catenator spec is a coordinate space. Every entry is a coordinate — a located description of one aspect of the system, examined through one lens, at one quality level. The coordinate space has three axes: **descriptors**, **views**, and **-ilities**.
+
+---
+
+## Descriptors
+
+Catenator defines thirteen descriptors — structured lenses for examining a system. No descriptor is mandatory. Use what the system requires. The descriptors are not a checklist. They are a vocabulary.
 
 | Descriptor | Specifies |
 |---|---|
@@ -64,16 +74,6 @@ rules:
 
 ---
 
-## The vocabulary
-
-Every domain has its own terms. Catenator's normative vocabulary formally defines terms used in specs — giving shared meaning to words like `proof`, `manuscript`, `edition`, and `rights` so that any agent or team reading the spec understands them the same way.
-
-The vocabulary is organized into clusters. Each term is defined with its descriptor, type, attributes, relationships, and constraints.
-
-Vocabulary is free to use commercially. The canonical document is published by Engaged Inquiry.
-
----
-
 ## The -ilities
 
 A valid Catenator spec is:
@@ -84,17 +84,6 @@ A valid Catenator spec is:
 - **Composable** — specs reference and build on other specs
 - **Extensible** — new domains and vocabularies can be added without breaking existing specs
 - **Portable** — any conforming agent or tool can read and act on the spec
-
----
-
-## The four layers
-
-| Layer | What it is |
-|---|---|
-| **Standard** | System + thirteen descriptors |
-| **Format** | YAML, machine-readable, version-controlled |
-| **Methodology** | Spec-driven development as practice |
-| **Intelligence layer** | Validation, readiness scoring, generation — coming |
 
 ---
 
@@ -114,4 +103,3 @@ A valid Catenator spec is:
 The standard is in active development. The vocabulary, schema, and v1.0 framework are being published here as they are completed.
 
 **© 2026 Parth Upadhye / Engaged Inquiry**
-
