@@ -1,0 +1,62 @@
+style.visual-theme:
+  macro:
+    systemName: "style.visual-theme"
+    domain: "presentation layout"
+    intent: >
+      Apply a consistent visual style (icons, colors, step-badge
+      states, panel treatment) to the app, matching an existing
+      reference application's look and feel — without importing or
+      depending on that reference application's codebase.
+    mustNever:
+      - "Change any pipeline logic, state handling, gating, or the
+         BYOK refraction mechanism as part of this styling pass"
+      - "Import or create a live dependency on the reference
+         application's codebase — copy visual values/assets only"
+      - "Introduce a new icon library or dependency without first
+         checking whether the reference application already uses one
+         that can be reused"
+  meso:
+    personas:
+      - id: user
+        doing: "Views the app; should experience consistent visual language across all steps"
+    reference:
+      path: "C:\\Users\\parth\\ei\\eisyntaxia_repos\\syntaxia-studio"
+      access: "read-only — inspect for styling values and assets, do not modify or import live"
+      whatToExtract:
+        - "CSS/styling approach used — global stylesheet, component-
+           scoped styles, a CSS framework, CSS variables/theme file"
+        - "Icon set/library used (package name, or custom SVG assets)"
+        - "Step-badge component styling: border weight, corner radius,
+           spacing, and color per state (completed / active / upcoming)"
+        - "Left-hand icon sidebar/rail treatment"
+        - "General color palette and typography, if consistent across
+           the reference app's screens"
+  micro:
+    - id: report-before-applying
+      rule: >
+        Before making any visual changes, report what was found in the
+        reference application (icon library name, badge styling
+        values, sidebar treatment) so these can be confirmed before
+        being applied.
+    - id: apply-to-existing-panels-only
+      rule: >
+        Apply the extracted style to this app's existing three-panel
+        layout (layout.three-panel) and step-navigation — do not
+        restructure the layout itself as part of this pass.
+    - id: completed-step-fill
+      rule: >
+        Completed steps in the step-nav get a filled background, not
+        just an outlined badge, to visually distinguish "done" from
+        "active" — matching the earlier agreed clarity improvement.
+    - id: standalone-styling
+      rule: >
+        All copied styling values and icon assets must be committed
+        into this app's own codebase (CSS/theme files, local icon
+        assets) — nothing here should reference or load from the
+        reference application's files at runtime.
+    - id: no-icons-on-step-numbers
+      rule: >
+        Step-nav entries keep their plain numbers (0-5) as the primary
+        identifier — do not add icons in place of, or alongside,
+        the step number. Numbers must remain the clearest visual
+        element of each step-nav entry.

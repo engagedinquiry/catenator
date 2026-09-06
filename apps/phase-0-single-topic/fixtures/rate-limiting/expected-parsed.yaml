@@ -1,0 +1,44 @@
+# Expected parse of this directory's free-text inputs.
+#
+# input-mode-dual.yaml micro.parity-check-required: the free-text parser must
+# turn topic.txt / sources-freetext-markdown.md / personas-freetext.md into
+# exactly this — same entry counts, same field values, dimensions matched by
+# name with no label present, values clean of "##" / quote marks.
+#
+# Field values are transcribed from the verified fixtures/phase-0/rate-limiting.yaml.
+# Dimensions are listed in the fixed canonical order (Surface, Content, Context,
+# Time, Trust).
+
+topicText: >-
+  Our API enforces rate limiting to keep the platform stable under load. Every
+  account gets a request quota per minute. When a client exceeds it, the API
+  doesn't just drop the request — it responds with a 429 status and an
+  X-RateLimit-Reset header telling the caller exactly how many seconds to wait
+  before trying again. The idea is that rate limiting shouldn't feel like a wall
+  you hit blindly; it should feel like a signal you can actually respond to. A
+  well-behaved client reads that header and backs off automatically instead of
+  hammering the API and making things worse for itself and everyone else on the
+  same infrastructure.
+
+sources:
+  - title: "Understanding rate limiting"
+    reference: "API Gateway design decision, ADR-014"
+    description: >-
+      Sliding window limiter. On limit exceeded: 429 status, X-RateLimit-Reset
+      header. Explains what rate limiting is and why the API responds with a wait
+      time instead of just failing, so integrators understand the reasoning
+      behind the 429 behavior rather than just the mechanics of it.
+
+personas:
+  - name: "First-time integrator"
+    summary: >-
+      Doesn't know what rate limiting is conceptually. Needs the concept
+      explained — why it exists, what a 429 means, why the header matters —
+      before seeing any code.
+    dimensions: ["Content", "Context"]
+  - name: "Experienced API developer"
+    summary: >-
+      Already understands rate limiting as a concept from other APIs. Just needs
+      this API's specific numbers and header name — skip the "why," give the
+      exact behavior.
+    dimensions: ["Content", "Trust"]

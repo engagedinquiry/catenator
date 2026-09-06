@@ -1,0 +1,36 @@
+branding.rename:
+  macro:
+    systemName: "branding.rename"
+    domain: "presentation layout"
+    intent: >
+      Ensure the app's displayed name, title, and any internal
+      references consistently use the product name defined in
+      build-config.yaml — never a hardcoded or leftover prior name.
+    mustNever:
+      - "Hardcode a product name anywhere in this component's logic —
+         the name must always be read from build-config.yaml"
+      - "Leave a prior product name in the UI title, page title, or
+         any user-visible text after this component runs"
+  meso:
+    personas:
+      - id: user
+        doing: "Sees the app's name in the header/title, consistently"
+    configSource: "build-config.yaml → branding.productName, branding.tagline"
+  micro:
+    - id: scan-for-prior-names
+      rule: >
+        Before applying the configured name, search the codebase for
+        any hardcoded prior product name (check build-config.yaml's
+        branding.priorNames list) in UI text, page titles, and
+        component/file names. Report every occurrence found before
+        changing anything.
+    - id: single-source-of-truth
+      rule: >
+        The product name must be read from build-config.yaml at
+        runtime or build time, not duplicated as a literal string in
+        more than one place in the code. If multiple UI locations show
+        the name, they must all reference the same config value.
+    - id: report-changes
+      rule: >
+        Report every file changed and what was replaced, so a rename
+        can be verified rather than assumed complete.

@@ -1,0 +1,16 @@
+# Build config — Phase 0 Single Topic
+
+techStack:
+  frontend: "Angular"
+
+aiProvider:
+  mode: "BYOK"
+  supported: ["Claude", "Gemini"]
+  note: >
+    Any provider satisfying the byok-compiler.contract component's
+    input/output shape is valid. Do not hardcode a single provider.
+
+branding:
+  productName: "Catenator"
+  tagline: "Creating and Refracting"
+  priorNames: ["Syntaxia", "Syntaxia Studio"]

@@ -1,0 +1,21 @@
+state.topic-refraction:
+  macro:
+    systemName: "state.topic-refraction"
+    domain: "content governance"
+    intent: "Hold the topic, sources, personas, and refracted outputs across steps."
+    mustNever:
+      - "Lose or overwrite author-entered data between steps"
+      - "Persist data beyond the current session unless explicitly extended later"
+  meso:
+    personas:
+      - id: author
+        doing: "Populates and revises state through Steps 1-3"
+    fields:
+      topicText: string
+      sources: "list of {title, reference, description}"
+      personas: "list of {name, summary, dimensions[]} — max 2"
+      refractedOutputs: "map keyed by personaId -> text"
+    persistenceScope: "in-memory / current session only — no persistence across page refresh or browser close in this phase"
+  micro:
+    - id: refracted-output-map
+      rule: "Keyed by personaId — one entry per persona, never merged"

@@ -1,0 +1,87 @@
+input-mode.dual:
+  macro:
+    systemName: "input-mode.dual"
+    domain: "dual input capture"
+    intent: "Offer structured-form and free-text entry for Sources and Personas steps."
+    mustNever:
+      - "Allow the two modes to produce divergent underlying data"
+      - "Split a single labeled record into multiple separate entries
+         when it should be one"
+      - "Block step advancement after free-text input parses
+         successfully — parsed free-text data must satisfy the same
+         completion check as structured-form data"
+      - "Infer or add a field value not actually stated in the
+         free-text input (e.g. assuming a dimension the user didn't
+         mention, or filling in a source detail not written down)"
+      - "Leave a structured-form field without both a visible field
+         name/label and placeholder text"
+      - "Include markdown heading marks, or surrounding quote marks,
+         in a parsed value unless those characters are genuinely part
+         of the intended value"
+  meso:
+    personas:
+      - id: author
+        doing: "Chooses either mode when entering sources or personas"
+  micro:
+    - id: mode-parity
+      rule: "Free-text input must parse into the exact same fields the structured form writes"
+    - id: sources-format
+      rule: >
+        Sources free text is markdown, using H2 sections: "## Title",
+        "## Source", "## Description" — each section's body is that
+        field's value. This is the only supported sources free-text
+        format; the older plain "Label:" line-prefix style is
+        deprecated and no longer required.
+    - id: personas-format
+      rule: >
+        Personas free text is markdown. Each "## <name>" heading marks
+        one persona; the heading text itself IS the persona's name,
+        with no separate "Persona 1:" label needed. The paragraph
+        immediately following the heading is that persona's summary.
+        A subsequent line containing a comma-separated list matching
+        one or more of the five fixed dimension names (Surface,
+        Content, Context, Time, Trust) is that persona's dimensions
+        list — recognized by matching against the known fixed set, not
+        by any label. No "Dimensions:" prefix is required or expected.
+    - id: parity-check-required
+      rule: >
+        Before treating a free-text parse as complete, run it against
+        fixtures/phase-0/rate-limiting/ — topic.txt,
+        sources-freetext-markdown.md, and personas-freetext.md — and
+        confirm the parsed result matches expected-parsed.yaml exactly
+        (same number of entries, same field values, dimensions matched
+        correctly with no label present).
+    - id: advance-after-parse
+      rule: >
+        Once free-text input has been parsed into valid data matching
+        the required fields, the step's "Continue" action must behave
+        identically to the structured-form path — do not add an extra
+        gate, delay, or silent failure specific to the free-text mode.
+    - id: parse-only-what-is-stated
+      rule: >
+        Never infer, guess, or auto-complete a field the free-text
+        input did not actually state. A dimension not mentioned stays
+        unselected. A source detail not written down stays blank —
+        it is not filled in from assumption or convention. Matching a
+        dimension name that IS present in the text (per personas-
+        format) is recognition, not inference — the word itself must
+        actually appear.
+    - id: field-labels-and-placeholders
+      rule: >
+        Every structured-form field must show both a visible field
+        name/label (e.g. "Title") and placeholder text inside the
+        input itself (e.g. "Short name for the topic") — matching the
+        pattern already used on the existing Metadata form.
+    - id: clean-value-extraction
+      rule: >
+        Parsed values must contain only the value itself — never
+        markdown heading marks ("##"), field labels, colons, or quote
+        marks that were structural rather than part of the value.
+    - id: downloadable-template
+      rule: >
+        The free-text input mode must offer a downloadable template a
+        user can fill in and paste back, in markdown, matching
+        sources-format (Title/Source/Description as H2 sections) or
+        personas-format (persona name as H2 heading, summary paragraph,
+        trailing dimension list) as appropriate to the step. No
+        pre-filled example values required — section headers only.

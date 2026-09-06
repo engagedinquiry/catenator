@@ -1,0 +1,27 @@
+layout.three-panel:
+  macro:
+    systemName: "layout.three-panel"
+    domain: "presentation layout"
+    intent: "Arrange step navigation, active step content, and step guidance in three panels."
+    mustNever:
+      - "Let this component alter gating, state, or any pipeline logic"
+  meso:
+    personas:
+      - id: user
+        doing: "Views all three panels simultaneously for the active step"
+    panels:
+      - id: panel-1
+        position: left, narrow
+        content: "Vertical step nav: Introduction, Topic, Sources, Personas, Refract, Publish"
+        stateStyle: "completed = filled background; active = outlined/highlighted; upcoming = neutral"
+      - id: panel-2
+        position: center, widest
+        content: "Active step's form/content"
+      - id: panel-3
+        position: right
+        content: "Plain-language guide for the active step; updates with active step"
+  micro:
+    - id: nav-display-only
+      rule: "Panel 1 clicks never bypass gating.linear-sequential — display only"
+    - id: reusable-template
+      rule: "Panel 1 and Panel 3 read from a shared step-definition list, not hardcoded per step"

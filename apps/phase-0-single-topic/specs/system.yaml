@@ -1,0 +1,46 @@
+# ============ TOP LEVEL ============
+# References vocabulary.yaml for domain term definitions.
+# References every file under components/ by id.
+systemName: "Creating and Refracting"
+domain: "guided learning lab"
+intent: >
+  A single-topic, two-persona refraction lab: paste a conceptual
+  topic, ground it with sources, name up to two readers, refract via
+  BYOK, publish for delivery.
+mustNever:
+  - "Allow more than 2 personas per topic"
+  - "Allow more than 1 topic per lab instance"
+  - "Bypass linear step gating via the step-nav display"
+  - "State a fact in refracted output absent from topic or sources"
+contentScope:
+  inScope: ["one conceptual topic", "up to 2 personas", "5 fixed dimensions"]
+  excluded: ["block catalogs", "multi-topic management", "custom dimensions"]
+personas:
+  - id: author
+    accessScope: full
+    doing: "Authors topic, sources, personas"
+  - id: reader
+    accessScope: request-only
+    doing: "Requests delivery of a refracted output by persona"
+deployedProcess:
+  steps: [Introduction, Topic, Sources, Personas, Refract, Publish]
+
+rule:
+  - id: leverage-naming
+    rule: >
+      Prefer a recognized domain/component/integration name over
+      restating its conventional behavior in full. Always state
+      business-specific numbers, thresholds, and exceptions
+      explicitly — a name never substitutes for a claim that isn't
+      inferable from convention.
+
+components:
+  - ref: components/layout-three-panel.yaml
+  - ref: components/gating-linear-sequential.yaml
+  - ref: components/state-topic-refraction.yaml
+  - ref: components/input-mode-dual.yaml
+  - ref: components/byok-compiler-contract.yaml
+  - ref: components/interrupt-conditional-api-key.yaml
+  - ref: components/check-grounding.yaml
+  - ref: components/delivery-request-response.yaml
+  - ref: components/step-introduction.yaml

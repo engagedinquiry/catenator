@@ -1,0 +1,16 @@
+interrupt.conditional-api-key:
+  macro:
+    systemName: "interrupt.conditional-api-key"
+    domain: "conditional prerequisite check"
+    intent: "Show an API-key prompt only when no key is set; never a fixed step."
+    mustNever:
+      - "Show this interrupt when a key is already set"
+      - "Block navigation through Steps 0-3 due to a missing key"
+      - "Add this as a permanent numbered step in the sequence"
+  meso:
+    personas:
+      - id: author
+        doing: "Sets an API key via Settings if prompted"
+  micro:
+    - id: hard-block-at-refract-only
+      rule: "Missing key blocks only Step 4 (Refract); Steps 0-3 remain accessible regardless"

@@ -1,0 +1,17 @@
+step.introduction:
+  macro:
+    systemName: "step.introduction"
+    domain: "guided learning lab"
+    intent: "Frame the lab's purpose before any data entry begins."
+    mustNever:
+      - "Include any form field or data-entry control on this step"
+  meso:
+    personas:
+      - id: user
+        doing: "Reads the framing, then proceeds to Step 1"
+    content:
+      required: ["one short paragraph describing the lab's purpose and outcome", "a 'Begin' action advancing to Step 1"]
+      optional: ["Panel 3 guide text — may be empty or a one-line note"]
+  micro:
+    - id: no-data-entry
+      rule: "This step captures no state; it is purely explanatory"

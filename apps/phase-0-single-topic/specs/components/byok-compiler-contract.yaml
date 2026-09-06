@@ -1,0 +1,68 @@
+byok-compiler.contract:
+  macro:
+    systemName: "byok-compiler.contract"
+    domain: "AI content generation"
+    intent: "Call an AI model with topic+sources+one persona, return one refracted text."
+    mustNever:
+      - "Invent a value not present in topic text or sources"
+      - "Depend on a specific model provider"
+      - "Fail silently on a call error"
+      - "Add content, sections, suggestions, or elaboration beyond
+         what the persona's dimensions and the provided topic/sources
+         call for"
+      - "Reference, hint at, or imply the existence of documentation
+         or material outside what was provided for this refraction"
+  meso:
+    personas:
+      - id: caller
+        doing: "Invokes the compiler once per persona"
+    contractShape:
+      input: [topicText, sources[], persona {name, summary, dimensions[]}]
+      output: refractedText
+      errorOutput: "structured error: {type: network|rate-limit|malformed-response, message, retryable: bool}"
+  micro:
+    - id: missing-value-behavior
+      rule: "State explicitly what is not specified in source, do not guess"
+    - id: model-agnostic
+      rule: "Same input/output contract regardless of Claude/Gemini/etc."
+    - id: call-failure-behavior
+      rule: >
+        On network error, rate limit, or malformed model response,
+        automatically retry the exact same call once, with no user
+        action required. If the retry also fails, return errorOutput
+        and surface it to the author visibly (not console-only). Do
+        not retry more than once. Do not present a failed call as a
+        successful empty result. Log the raw API response on any
+        malformed-response error, so the failure can be diagnosed.
+    - id: no-unrequested-scope
+      rule: >
+        The compiler's prompt must instruct the model to answer only
+        what the topic, sources, and persona's stated dimensions
+        require — no additional sections, no "you might also want to
+        know" asides, no speculative suggestions about related topics
+        not present in the input. Refracted output should be as short
+        as correctly answering the persona's need allows, not padded
+        with unrequested elaboration.
+    - id: no-speculation-about-external-material
+      rule: >
+        Output must not reference, hint at, or imply the existence of
+        documentation or material outside what was explicitly provided
+        as topic text or sources. A correct disclosure states only
+        what THIS input does or does not specify — never where an
+        unspecified value might otherwise be found.
+    - id: refract-all-personas-one-action
+      rule: >
+        A single "Refract" action must generate output for every
+        persona currently defined (up to the 2-persona limit) in one
+        step — not a per-persona trigger requiring separate manual
+        actions. The button/action label should reflect this (e.g.
+        "Refract for all personas").
+    - id: clean-persona-name-display
+      rule: >
+        Wherever a persona's name is shown to the user (in the
+        Refract screen's output list, or anywhere else), display only
+        the plain name text — e.g. "First-time integrator" — never
+        the underlying data structure's syntax (e.g. not
+        '- name: "First-time integrator"'). Quote marks, YAML/JSON
+        key names, and list-item dashes are internal data
+        representation and must never leak into displayed UI text.

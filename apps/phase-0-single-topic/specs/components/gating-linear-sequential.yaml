@@ -1,0 +1,14 @@
+gating.linear-sequential:
+  macro:
+    systemName: "gating.linear-sequential"
+    domain: "linear workflow control"
+    intent: "Enforce step order; no step reachable without prior steps' required data."
+    mustNever:
+      - "Allow step-nav clicks to skip incomplete prior steps"
+  meso:
+    personas:
+      - id: user
+        doing: "Navigates steps 0-5"
+  micro:
+    - id: redirect-on-incomplete
+      rule: "Redirect to earliest incomplete step if a later step is accessed directly"

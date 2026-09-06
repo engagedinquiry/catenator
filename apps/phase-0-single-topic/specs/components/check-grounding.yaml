@@ -1,0 +1,14 @@
+check.grounding:
+  macro:
+    systemName: "check.grounding"
+    domain: "content governance"
+    intent: "Verify refracted output traces to topic/sources before delivery."
+    mustNever:
+      - "Deliver output containing an ungrounded specific claim"
+  meso:
+    personas:
+      - id: verifier
+        doing: "Compares refracted claims against source material"
+  micro:
+    - id: missing-fact-disclosure
+      rule: "Absent facts stated as absent, not filled in"

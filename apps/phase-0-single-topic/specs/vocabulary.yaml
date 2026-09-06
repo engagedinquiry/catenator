@@ -1,0 +1,44 @@
+# ============ VOCABULARY (DICTIONARY) ============
+# Every domain value used anywhere in this spec, defined once here.
+vocabulary:
+  - term: "guided learning lab"
+    definition: >
+      An interactive tutorial format: a single, bounded task walked
+      through in ordered steps, each step teaching one concept before
+      the next unlocks. Distinct from open-ended authoring tools —
+      implies linear progression, a fixed scope, and a guide/
+      explanation accompanying each step.
+  - term: "AI content generation"
+    definition: >
+      A component whose job is producing text via a call to a large
+      language model, given structured input. Implies non-determinism
+      per call, hallucination risk, need for grounding/verification,
+      and provider-agnostic design (not tied to one specific model
+      vendor).
+  - term: "content governance"
+    definition: >
+      A component whose job is capturing and structuring authored
+      material (facts, references, audience definitions) before it's
+      used downstream. Implies traceability — every claim should map
+      back to something explicitly stated here, not inferred.
+  - term: "linear workflow control"
+    definition: >
+      A component enforcing strict step ordering with no skip-ahead.
+      Implies a gate check before each transition and a defined
+      fallback (redirect) when the check fails.
+  - term: "presentation layout"
+    definition: >
+      A component purely concerned with visual arrangement of
+      existing content — no data, no logic. Implies it can change
+      freely without affecting any other component's behavior.
+  - term: "dual input capture"
+    definition: >
+      A component offering two equivalent ways to enter the same
+      data (structured form vs. free text), with a stated requirement
+      that both produce identical underlying data.
+  - term: "conditional prerequisite check"
+    definition: >
+      A component that checks for a required precondition (e.g. an
+      API key) and interrupts only when the precondition is missing —
+      never shown when already satisfied, never blocking unrelated
+      steps.

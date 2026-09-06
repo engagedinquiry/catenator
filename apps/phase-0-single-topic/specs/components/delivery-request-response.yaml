@@ -1,0 +1,41 @@
+delivery.request-response:
+  macro:
+    systemName: "delivery.request-response"
+    domain: "content governance"
+    intent: "Return a specific persona's refracted output on request."
+    mustNever:
+      - "Return a different persona's output than the one requested"
+      - "Return output for a persona that hasn't been refracted yet"
+      - "Ask the user (reader) to supply a topicId in the UI while
+         this lab supports only a single topic — the app must default
+         it implicitly to the one existing topic"
+      - "Display a persona name using its underlying data structure's
+         syntax (quote marks, YAML/JSON key names, list dashes) rather
+         than plain text"
+  meso:
+    personas:
+      - id: reader
+        doing: "Requests a refracted output; only chooses a persona, never a topic"
+    contractShape:
+      input: [topicId, personaId]
+      output: refractedText
+      errorOutput: "structured error if personaId has no refracted output yet: {type: not-yet-refracted, message}"
+  micro:
+    - id: exact-persona-match
+      rule: "Response must come from state.topic-refraction's refractedOutputs map, keyed exactly by requested personaId"
+    - id: topic-id-implicit-in-single-topic-scope
+      rule: >
+        topicId remains part of the underlying request/response
+        contract (needed for future multi-topic phases) but must NOT
+        be exposed as a user-facing input while contentScope is
+        single-topic. The app supplies the one existing topic's ID
+        automatically. The persona selector (name only, plainly
+        displayed) is the only input the reader sees or provides.
+    - id: clean-persona-name-display
+      rule: >
+        The persona selector shown to the reader must display only
+        the plain persona name (e.g. "First-time integrator") — never
+        the underlying data structure's syntax, and never an internal
+        identifier like "persona-0" appended to the display name
+        unless a human-readable disambiguator is genuinely needed (in
+        which case use plain language, not the raw id).
