@@ -3,8 +3,10 @@ import { personasGuard, publishGuard, refractGuard, sourcesGuard } from './core/
 
 /**
  * deployedProcess.steps: [Introduction, Topic, Sources, Personas, Refract, Publish]
- * plus a non-step Settings page. interrupt.conditional-api-key is deliberately
- * NOT a route here — it is a shell banner.
+ * plus a non-step Settings page for BYOK key entry.
+ *
+ * interrupt.conditional-api-key is NOT a route — it is a shell banner + a block
+ * inside the Refract step only.
  */
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'intro' },

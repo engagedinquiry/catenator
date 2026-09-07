@@ -1,88 +1,66 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { checkGrounding } from '../core/grounding';
-import { DeliveryResponse, resolveDelivery } from '../core/publish';
+import { deliver } from '../core/delivery';
 import { SessionStore } from '../core/session-store';
 
 /**
- * Step 5 — Publish for delivery (delivery.request-response).
+ * Step 5 — Publish / deliver. delivery.request-response.
  *
- *  - The reader chooses a persona only. topicId is supplied implicitly from the
- *    single in-session topic — there is no topic input in the UI.
- *  - The persona selector shows the plain persona name only.
- *  - resolveDelivery returns exactly the requested persona's output, and only
- *    if it has been refracted and is grounded (or verifier-approved).
+ * The reader picks a persona and nothing else — topicId is supplied implicitly
+ * (micro.topic-id-implicit-in-single-topic-scope). The selector shows the plain
+ * persona name only (micro.clean-persona-name-display).
+ * micro.grounding-gate: every request runs check.grounding first; an ungrounded
+ * claim returns {type: ungrounded-claim} and the output is not shown.
  */
 @Component({
   selector: 'app-publish-step',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <h2>Step 5 — Publish for delivery</h2>
-    <p class="hint">Choose a reader; get that reader's refracted version back. No caching, no persistence — it resolves against this session only.</p>
+    <h2>Step 5 — Deliver a reader's version</h2>
+    <p class="hint">Choose a reader. The output is grounding-checked against the topic and sources before it's served.</p>
 
-    <div class="card">
-      <label for="pub-persona">Reader</label>
-      <select id="pub-persona" [(ngModel)]="personaId">
-        @for (r of store.refractions(); track r.personaId) {
-          <option [value]="r.personaId">{{ r.personaName }}</option>
-        }
-      </select>
-      <div class="row">
-        <button (click)="send()">Publish for delivery</button>
-      </div>
-    </div>
+    <label for="pick">Reading as</label>
+    <select id="pick" [ngModel]="selectedId()" (ngModelChange)="selectedId.set($event)">
+      <option value="">Choose a reader…</option>
+      @for (p of store.personas(); track p.id) {
+        <option [value]="p.id">{{ p.name }}</option>
+      }
+    </select>
 
-    @if (response(); as res) {
-      <strong>Response</strong>
-      <pre class="out">{{ pretty(res) }}</pre>
-      @if (res.ok) {
-        <h2>Rendered output — {{ res.personaName }}</h2>
-        <pre class="out">{{ res.output }}</pre>
+    @if (response(); as r) {
+      @if (r.ok) {
+        <pre class="out">{{ r.text }}</pre>
+      } @else {
+        <div class="err">{{ r.error.message }}</div>
       }
     }
 
     <div class="actions">
-      <button class="ghost" (click)="router.navigate(['/refract'])">← Back</button>
+      <button class="ghost" (click)="back()">← Back</button>
       <span></span>
     </div>
   `
 })
 export class PublishStep {
   readonly store = inject(SessionStore);
-  readonly router = inject(Router);
+  private router = inject(Router);
 
-  personaId = this.store.refractions()[0]?.personaId ?? '';
-  response = signal<DeliveryResponse | null>(null);
-
-  private ungroundedIds = computed(() => {
-    const ids = new Set<string>();
-    for (const r of this.store.refractions()) {
-      if (checkGrounding(r, this.store.topicText(), this.store.sources()).ungrounded.length > 0) {
-        ids.add(r.personaId);
-      }
-    }
-    return ids;
+  readonly selectedId = signal('');
+  readonly response = computed(() => {
+    const id = this.selectedId();
+    if (!id) return null;
+    return deliver(
+      { topicId: this.store.topicId(), personaId: id },
+      this.store.refractedOutputs(),
+      this.store.topicText(),
+      this.store.sources()
+    );
   });
 
-  send(): void {
-    this.response.set(
-      resolveDelivery(
-        { topicId: this.store.topicId(), personaId: this.personaId },
-        {
-          sessionTopicId: this.store.topicId(),
-          refractedOutputs: this.store.refractedOutputs(),
-          groundingApproved: this.store.groundingApproved(),
-          ungroundedPersonaIds: this.ungroundedIds()
-        }
-      )
-    );
-  }
-
-  pretty(res: DeliveryResponse): string {
-    if (!res.ok) return JSON.stringify(res, null, 2);
-    const short = res.output.length > 120 ? res.output.slice(0, 120) + '… (full text below)' : res.output;
-    return JSON.stringify({ ...res, output: short }, null, 2);
+  back(): void {
+    this.router.navigate(['/refract']);
   }
 }

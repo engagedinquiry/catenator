@@ -1,68 +1,45 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionStore } from '../core/session-store';
-import { PROVIDERS } from '../core/transports';
+import { SUPPORTED_PROVIDERS } from '../core/transports';
 
 /**
- * Settings — BYOK. The key is held in memory for this session only; it is never
- * written to disk and is sent only to the selected provider's API host.
+ * Settings — BYOK key entry. NOT a step (interrupt.conditional-api-key mustNever
+ * "Add this as a permanent numbered step"). Reachable any time; held in memory
+ * for the session only (state.topic-refraction persistenceScope).
  */
 @Component({
   selector: 'app-settings-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <h2>Settings</h2>
-    <p class="hint">Your API key is held in memory for this session only. It is never written to disk, and is sent only to the provider you choose.</p>
+    <h1>Settings — bring your own key</h1>
+    <p class="lead">Held in memory for this session only. A refresh clears it, along with everything else.</p>
 
-    <div class="card">
-      <label for="set-provider">Provider</label>
-      <select id="set-provider" [(ngModel)]="provider" (ngModelChange)="onProvider()">
-        @for (p of providers; track p.id) {
-          <option [value]="p.id">{{ p.label }}</option>
-        }
-      </select>
+    <label for="provider">Provider</label>
+    <select id="provider" [ngModel]="store.provider()" (ngModelChange)="store.setProvider($event)">
+      @for (p of providers; track p) { <option [value]="p">{{ p }}</option> }
+    </select>
 
-      <label for="set-key">API key</label>
-      <input id="set-key" [type]="show() ? 'text' : 'password'" [(ngModel)]="key" placeholder="Paste your key" />
-      <div class="row">
-        <label style="margin:0"><input type="checkbox" [(ngModel)]="showFlag" (ngModelChange)="show.set(showFlag)" /> show</label>
-      </div>
+    <label for="model">Model</label>
+    <input id="model" type="text" [ngModel]="store.model()" (ngModelChange)="store.model.set($event)" placeholder="Model id" />
 
-      <label for="set-model">Model</label>
-      <input id="set-model" type="text" [(ngModel)]="model" placeholder="Model id" />
-    </div>
+    <label for="key">API key</label>
+    <input id="key" type="password" [ngModel]="store.apiKey()" (ngModelChange)="store.apiKey.set($event)" placeholder="Paste your key" />
 
     <div class="actions">
-      <button class="ghost" (click)="router.navigate(['/topic'])">← Back to flow</button>
-      <button (click)="save()">Save</button>
+      <button class="ghost" (click)="done()">← Back</button>
+      <span>{{ store.hasApiKey() ? 'Key set for this session.' : '' }}</span>
     </div>
-    @if (saved()) { <p class="hint" style="color:var(--ok)">Saved for this session.</p> }
   `
 })
 export class SettingsPage {
   readonly store = inject(SessionStore);
-  readonly router = inject(Router);
-  readonly providers = PROVIDERS;
-
-  provider = this.store.provider();
-  key = this.store.apiKey();
-  model = this.store.model();
-  show = signal(false);
-  showFlag = false;
-  saved = signal(false);
-
-  onProvider(): void {
-    this.store.setProvider(this.provider);
-    this.model = this.store.model();
-  }
-
-  save(): void {
-    this.store.setProvider(this.provider);
-    if (this.model.trim()) this.store.model.set(this.model.trim());
-    this.store.apiKey.set(this.key.trim());
-    this.saved.set(true);
-    setTimeout(() => this.saved.set(false), 2000);
+  readonly providers = SUPPORTED_PROVIDERS;
+  private router = inject(Router);
+  done(): void {
+    this.router.navigate(['/intro']);
   }
 }

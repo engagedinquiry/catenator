@@ -1,58 +1,57 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { parseSource } from '../core/parse-freetext';
+import { parseSourcesFreetext } from '../core/parse-freetext';
 import { SessionStore } from '../core/session-store';
-import { emptySource, SourceItem } from '../model/models';
+import { SourceItem } from '../core/models';
 import { downloadText, SOURCES_TEMPLATE } from '../ui/freetext-template';
 
-type Mode = 'form' | 'text';
-
 /**
- * Step 2 — Sources (input-mode.dual).
+ * Step 2 — Sources. input-mode.dual: form OR free-text markdown, producing
+ * identical data (micro.mode-parity). A single labeled record is ONE source
+ * (mustNever "Split a single labeled record into multiple separate entries").
  *
- * Both modes write the SAME { title, reference, description } record and are
- * checked by the SAME completion rule (title + description required). The
- * free-text mode is markdown with "## Title" / "## Source" / "## Description"
- * sections. Nothing is inferred — a missing section stays blank.
+ * micro.field-labels-and-placeholders: every field has a visible label AND
+ * placeholder.
+ * micro.advance-after-parse: once free text parses, "Continue" behaves exactly
+ * like the form path.
  */
 @Component({
   selector: 'app-sources-step',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <h2>Step 2 — Sources</h2>
-    <p class="hint">Name the source behind this topic: a title, a source reference, and a description. Fill the form, or write it as markdown and let it be parsed into the same three fields.</p>
+    <h2>Step 2 — Ground the topic with a source</h2>
+    <p class="hint">One reference record. Enter it as a form or as markdown — both write the same fields.</p>
 
-    <div class="toggle">
-      <button [class.on]="mode() === 'form'" (click)="mode.set('form')">Structured form</button>
-      <button [class.on]="mode() === 'text'" (click)="mode.set('text')">Free text</button>
+    <div class="toggle" role="tablist">
+      <button type="button" [class.on]="mode() === 'form'" (click)="mode.set('form')">Form</button>
+      <button type="button" [class.on]="mode() === 'text'" (click)="mode.set('text')">Free text</button>
     </div>
 
     @if (mode() === 'form') {
-      <div class="card">
-        <label for="s-title">Title</label>
-        <input id="s-title" type="text" [(ngModel)]="form.title" placeholder="Short name for the source" />
-        <label for="s-ref">Source reference</label>
-        <input id="s-ref" type="text" [(ngModel)]="form.reference" placeholder="URL, doc name, ADR number, or system of record (optional)" />
-        <label for="s-desc">Description</label>
-        <textarea id="s-desc" [(ngModel)]="form.description" placeholder="What the source covers and why it matters"></textarea>
-      </div>
+      <label for="s-title">Title</label>
+      <input id="s-title" type="text" [(ngModel)]="title" placeholder="Short name for the source" />
+
+      <label for="s-ref">Source</label>
+      <input id="s-ref" type="text" [(ngModel)]="reference" placeholder="Where it comes from (e.g. ADR-014)" />
+
+      <label for="s-desc">Description</label>
+      <textarea id="s-desc" [(ngModel)]="description" placeholder="What it says, and what the reader should take from it"></textarea>
     } @else {
-      <div class="card">
-        <label for="s-raw">Free-text sources (markdown)</label>
-        <textarea id="s-raw" class="big" [(ngModel)]="raw" (ngModelChange)="reparse()"
-          placeholder="## Title&#10;&#10;Short name for the source&#10;&#10;## Source&#10;&#10;URL, doc name, or ADR number&#10;&#10;## Description&#10;&#10;What the source covers and why it matters"></textarea>
-        <p class="hint">
-          <button type="button" class="link" (click)="downloadTemplate()">Download blank template (.md)</button>
-        </p>
-        <p class="hint">Parsed preview — title: <code>{{ preview().title || '—' }}</code>,
-          source: <code>{{ preview().reference || '—' }}</code>,
-          description: <code>{{ previewDesc() }}</code></p>
+      <label for="s-free">Sources markdown</label>
+      <textarea
+        id="s-free"
+        class="big"
+        [(ngModel)]="freetext"
+        placeholder="## Title&#10;…&#10;&#10;## Source&#10;…&#10;&#10;## Description&#10;…"></textarea>
+      <div class="row">
+        <button type="button" class="link" (click)="downloadTemplate()">Download template</button>
       </div>
     }
 
-    @if (error()) { <p class="err">{{ error() }}</p> }
+    @if (error()) { <div class="err">{{ error() }}</div> }
 
     <div class="actions">
       <button class="ghost" (click)="back()">← Back</button>
@@ -64,39 +63,47 @@ export class SourcesStep {
   private store = inject(SessionStore);
   private router = inject(Router);
 
-  mode = signal<Mode>('form');
-  form: SourceItem = this.store.sources()[0] ?? emptySource();
-  raw = '';
-  preview = signal<SourceItem>(emptySource());
-  previewDesc = computed(() => {
-    const d = this.preview().description || '—';
-    return d.length > 80 ? d.slice(0, 80) + '…' : d;
-  });
-  error = signal<string>('');
+  readonly mode = signal<'form' | 'text'>('form');
+  readonly error = signal<string>('');
 
-  reparse(): void {
-    this.preview.set(parseSource(this.raw));
-  }
+  private existing = this.store.sources()[0];
+  title = this.existing?.title ?? '';
+  reference = this.existing?.reference ?? '';
+  description = this.existing?.description ?? '';
+  freetext = '';
 
-  downloadTemplate(): void {
-    downloadText('catenator-sources-template.md', SOURCES_TEMPLATE);
-  }
-
-  private resolve(): SourceItem {
-    return this.mode() === 'form' ? this.form : parseSource(this.raw);
+  private resolve(): SourceItem[] | null {
+    if (this.mode() === 'text') {
+      const parsed = parseSourcesFreetext(this.freetext);
+      if (!parsed.ok) {
+        this.error.set(parsed.errors.join(' '));
+        return null;
+      }
+      return parsed.sources;
+    }
+    const one: SourceItem = {
+      title: this.title.trim(),
+      reference: this.reference.trim(),
+      description: this.description.trim()
+    };
+    if (!one.title || !one.description) {
+      this.error.set('Title and Description are required.');
+      return null;
+    }
+    return [one];
   }
 
   next(): void {
-    const s = this.resolve();
-    if (!s.title.trim() || !s.description.trim()) {
-      this.error.set('Title and description are both required.');
-      return;
-    }
-    this.store.setSources([s]);
+    this.error.set('');
+    const list = this.resolve();
+    if (!list) return;
+    this.store.setSources(list);
     this.router.navigate(['/personas']);
   }
-
   back(): void {
     this.router.navigate(['/topic']);
+  }
+  downloadTemplate(): void {
+    downloadText('sources-template.md', SOURCES_TEMPLATE);
   }
 }

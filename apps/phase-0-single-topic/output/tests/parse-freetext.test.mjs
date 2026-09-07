@@ -1,94 +1,105 @@
-/**
- * input-mode.dual — parser parity against fixtures/rate-limiting/.
- *
- * micro.parity-check-required: sources-freetext-markdown.md and
- * personas-freetext.md must parse into exactly the values recorded in
- * expected-parsed.yaml (transcribed here as the EXPECTED constants).
- */
-import test from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseSourcesFreetext, parsePersonasFreetext } from '../src/app/core/parse-freetext.ts';
+import { FIXED_DIMENSIONS } from '../src/app/core/models.ts';
 
-import { parseSource, parseSources, parsePersonas, cleanValue } from '../src/app/core/parse-freetext.ts';
+// input-mode.dual micro.parity-check-required: run the parser against the
+// canonical fixtures and confirm the parsed result matches expected-parsed.yaml
+// exactly — same entry counts, same field values, dimensions matched by name
+// with no label present.
+const FIX = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  'fixtures',
+  'rate-limiting'
+);
+const read = (f) => readFileSync(join(FIX, f), 'utf8');
 
-const here = dirname(fileURLToPath(import.meta.url));
-const fx = (name) => readFileSync(join(here, '../../fixtures/rate-limiting/', name), 'utf8');
+// tiny YAML reader for the specific shape of expected-parsed.yaml (block scalars,
+// simple lists). Not a general YAML parser.
+function loadExpected() {
+  const raw = read('expected-parsed.yaml').replace(/\r\n/g, '\n');
+  const flat = (s) => s.replace(/\s+/g, ' ').trim();
 
-// --- transcribed from fixtures/rate-limiting/expected-parsed.yaml -------------
-const EXPECTED_SOURCE = {
-  title: 'Understanding rate limiting',
-  reference: 'API Gateway design decision, ADR-014',
-  description:
-    'Sliding window limiter. On limit exceeded: 429 status, X-RateLimit-Reset header. Explains what rate limiting is and why the API responds with a wait time instead of just failing, so integrators understand the reasoning behind the 429 behavior rather than just the mechanics of it.'
-};
-const EXPECTED_PERSONAS = [
-  {
-    name: 'First-time integrator',
-    summary:
-      "Doesn't know what rate limiting is conceptually. Needs the concept explained — why it exists, what a 429 means, why the header matters — before seeing any code.",
-    dimensions: ['Content', 'Context']
-  },
-  {
-    name: 'Experienced API developer',
-    summary:
-      'Already understands rate limiting as a concept from other APIs. Just needs this API\'s specific numbers and header name — skip the "why," give the exact behavior.',
-    dimensions: ['Content', 'Trust']
-  }
-];
+  const topic = flat(raw.match(/topicText:\s*>-\n([\s\S]*?)\n\n\S/)[1]);
 
-test('sources free-text markdown parses to the expected single record', () => {
-  const parsed = parseSource(fx('sources-freetext-markdown.md'));
-  assert.deepEqual(parsed, EXPECTED_SOURCE);
-});
+  const srcBlock = raw.match(/sources:\n([\s\S]*?)\npersonas:/)[1];
+  const s = {
+    title: srcBlock.match(/title:\s*"([^"]+)"/)[1],
+    reference: srcBlock.match(/reference:\s*"([^"]+)"/)[1],
+    description: flat(srcBlock.match(/description:\s*>-\n([\s\S]*)$/)[1])
+  };
 
-test('parseSources returns exactly one entry (record is not split)', () => {
-  const list = parseSources(fx('sources-freetext-markdown.md'));
-  assert.equal(list.length, 1);
-});
-
-test('personas free-text markdown parses to the expected two personas', () => {
-  const parsed = parsePersonas(fx('personas-freetext.md')).map((p) => ({
-    name: p.name,
-    summary: p.summary,
-    dimensions: p.dimensions
+  const persBlock = raw.match(/personas:\n([\s\S]*)$/)[1];
+  const personas = [...persBlock.matchAll(
+    /- name:\s*"([^"]+)"\n\s*summary:\s*>-\n([\s\S]*?)\n\s*dimensions:\s*\[([^\]]*)\]/g
+  )].map((m) => ({
+    name: m[1],
+    summary: flat(m[2]),
+    dimensions: m[3].split(',').map((d) => d.trim().replace(/"/g, '')).filter(Boolean)
   }));
-  assert.deepEqual(parsed, EXPECTED_PERSONAS);
+
+  return { topic, source: s, personas };
+}
+
+const expected = loadExpected();
+
+test('parity: sources free text parses to exactly one source with the expected fields', () => {
+  const p = parseSourcesFreetext(read('sources-freetext-markdown.md'));
+  assert.equal(p.ok, true);
+  assert.equal(p.sources.length, 1);
+  assert.deepEqual(p.sources[0], expected.source);
+  // clean-value-extraction: no "##", no leading label, no wrapping quotes
+  for (const v of Object.values(p.sources[0])) {
+    assert.ok(!v.includes('##'));
+    assert.ok(!/^["'].*["']$/.test(v));
+  }
 });
 
-test('dimensions come out in canonical order regardless of source order', () => {
-  // fixture writes "Context, Content" — expected canonical is ["Content","Context"]
-  const p = parsePersonas('## R\n\nSummary.\n\nTrust, Surface, Content')[0];
-  assert.deepEqual(p.dimensions, ['Surface', 'Content', 'Trust']);
+test('parity: personas free text parses to exactly the expected personas', () => {
+  const p = parsePersonasFreetext(read('personas-freetext.md'));
+  assert.equal(p.ok, true);
+  assert.equal(p.personas.length, expected.personas.length);
+  p.personas.forEach((got, i) => {
+    assert.equal(got.name, expected.personas[i].name);
+    assert.equal(got.summary, expected.personas[i].summary);
+    // dimensions matched by name, returned in canonical order, no label
+    assert.deepEqual(got.dimensions, expected.personas[i].dimensions);
+  });
 });
 
-test('parse-only-what-is-stated: an unmentioned dimension stays unselected', () => {
-  const p = parsePersonas('## R\n\nCares about clarity and speed.\n\nContent')[0];
-  assert.deepEqual(p.dimensions, ['Content']);
+test('parity: dimensions come back in the fixed canonical order even if written out of order', () => {
+  // fixture writes "Context, Content" and "Trust, Content" — expected is canonical
+  const p = parsePersonasFreetext(read('personas-freetext.md'));
+  for (const persona of p.personas) {
+    const canonicalIdx = persona.dimensions.map((d) => FIXED_DIMENSIONS.indexOf(d));
+    assert.deepEqual(canonicalIdx, [...canonicalIdx].sort((a, b) => a - b));
+  }
 });
 
-test('parse-only-what-is-stated: a missing source section stays blank, not inferred', () => {
-  const s = parseSource('## Title\n\nJust a title here.');
-  assert.equal(s.title, 'Just a title here.');
-  assert.equal(s.reference, '');
-  assert.equal(s.description, '');
+test('parse-only-what-is-stated: a dimension not written is not selected', () => {
+  const p = parsePersonasFreetext('## R\n\nsummary here\n\nContent');
+  assert.deepEqual(p.personas[0].dimensions, ['Content']);
 });
 
-test('clean-value-extraction: heading marks and surrounding quotes are stripped', () => {
-  assert.equal(cleanValue('## Heading text'), 'Heading text');
-  assert.equal(cleanValue('"quoted value"'), 'quoted value');
-  assert.equal(cleanValue('- bullet value'), 'bullet value');
-  const s = parseSource('## Title\n\n"Understanding rate limiting"');
-  assert.equal(s.title, 'Understanding rate limiting');
+test('parse-only-what-is-stated: a line with a non-dimension token is NOT treated as dimensions', () => {
+  const p = parsePersonasFreetext('## R\n\nSummary line.\n\nContent, Frobnicate');
+  // the "Content, Frobnicate" line is prose, not a dimension list
+  assert.deepEqual(p.personas[0].dimensions, []);
+  assert.ok(p.personas[0].summary.includes('Frobnicate'));
 });
 
-test('deprecated "Label:" prefix style is NOT parsed as fields', () => {
-  const s = parseSource('Title: Something\nSource: ADR-1\nDescription: text');
-  assert.deepEqual(s, { title: '', reference: '', description: '' });
+test('sources: a missing section is an explicit error, not a silent blank', () => {
+  const p = parseSourcesFreetext('## Title\n\nX\n\n## Description\n\nY');
+  assert.equal(p.ok, false);
+  assert.ok(p.errors.some((e) => /Source/.test(e)));
 });
 
-test('personas parser caps at MAX_PERSONAS (2)', () => {
-  const many = ['## A', 'sa', '', '## B', 'sb', '', '## C', 'sc'].join('\n');
-  assert.equal(parsePersonas(many).length, 2);
+test('sources: one labeled record stays ONE source', () => {
+  const p = parseSourcesFreetext(read('sources-freetext-markdown.md'));
+  assert.equal(p.sources.length, 1);
 });

@@ -1,31 +1,34 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SessionStore } from '../core/session-store';
 
 /**
- * interrupt.conditional-api-key — a conditional API-key notice, NOT a numbered
- * step.
+ * interrupt.conditional-api-key — the shell banner form of the interrupt.
  *
  * mustNever:
- *  - "Show this interrupt when a key is already set"   -> visible() checks !hasApiKey()
- *  - "Block navigation through Steps 0-3"              -> inline notice, dismissible, no gate
- *  - "Add this as a permanent numbered step"           -> lives in the shell, not the routes
- *
- * micro.hard-block-at-refract-only: the Refract step has its own hard gate, so
- * this banner hides there (nothing to add that the step doesn't already say).
+ *  - "Show this interrupt when a key is already set" -> hidden when hasApiKey().
+ *  - "Block navigation through Steps 0-3" -> this is a dismissible banner, never
+ *     a modal or a route block. The only hard block is inside RefractStep.
+ *  - "Add this as a permanent numbered step" -> it has no step number and no
+ *     STEP_DEFS entry; Settings is a plain page, not a step.
  */
 @Component({
   selector: 'app-key-banner',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
-    @if (visible()) {
+    @if (show()) {
       <div class="key-banner" role="status">
         <span>
-          You’ll need an API key before refraction can run.
-          <a routerLink="/settings">Add one now</a>, or continue and add it later before Step 4.
+          No API key set.
+          @if (current() === 'refract') {
+            Step 4 (Refract) needs one.
+          } @else {
+            You can keep going — Step 4 (Refract) will need one.
+          }
         </span>
-        <button type="button" class="x" (click)="dismissed.set(true)" aria-label="Dismiss">✕</button>
+        <a routerLink="/settings" class="link">Add API key →</a>
       </div>
     }
   `,
@@ -34,41 +37,22 @@ import { SessionStore } from '../core/session-store';
       .key-banner {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-        padding: 10px 12px;
+        gap: 14px;
+        flex-wrap: wrap;
         background: #fffbeb;
         border: 1px solid #fde68a;
         border-radius: var(--radius-card);
+        padding: 10px 14px;
+        margin-bottom: 16px;
         font-size: 0.8125rem;
         color: #92400e;
       }
-      .key-banner a { color: #92400e; font-weight: 700; }
-      .key-banner .x {
-        margin-left: auto;
-        flex-shrink: 0;
-        background: transparent;
-        border: 0;
-        color: #92400e;
-        font-size: 0.75rem;
-        padding: 2px 4px;
-      }
-      .key-banner .x:hover { background: rgba(146, 64, 14, 0.1); }
+      .key-banner .link { margin-left: auto; font-weight: 700; color: var(--accent-blue); text-decoration: none; }
     `
   ]
 })
 export class KeyBanner {
   private store = inject(SessionStore);
-
-  current = input.required<string>();
-
-  readonly dismissed = signal(false);
-
-  visible = computed(
-    () =>
-      !this.dismissed() &&
-      !this.store.hasApiKey() &&
-      this.current() !== 'refract' &&
-      this.current() !== 'settings'
-  );
+  readonly current = input.required<string>();
+  readonly show = computed(() => !this.store.hasApiKey());
 }

@@ -1,26 +1,39 @@
-import { RefractionTransport } from '../refraction';
-import { anthropicTransport } from './anthropic';
-import { geminiTransport } from './gemini';
+/**
+ * byok-compiler.contract.model-agnostic: one transport interface, one output
+ * shape, regardless of Claude / Gemini / etc. The compiler core (refraction.ts)
+ * imports this interface only — never a concrete vendor.
+ */
+export interface RefractionTransport {
+  /** provider id, matches build-config.yaml → aiProvider.supported (lowercased). */
+  readonly id: string;
+  /**
+   * Send one prompt, return the model's text. Throw on any failure — the caller
+   * (refraction.ts) classifies and retries per call-failure-behavior.
+   */
+  complete(prompt: string, apiKey: string, model: string): Promise<string>;
+}
 
-/** Providers this build supports (build-config.yaml → aiProvider.supported). */
-export const PROVIDERS = [
-  { id: 'claude', label: 'Claude', defaultModel: 'claude-sonnet-5' },
-  { id: 'gemini', label: 'Gemini', defaultModel: 'gemini-2.5-flash' }
-] as const;
+import { AnthropicTransport } from './anthropic';
+import { GeminiTransport } from './gemini';
 
-export type ProviderId = (typeof PROVIDERS)[number]['id'];
-
-const TRANSPORTS: Record<ProviderId, RefractionTransport> = {
-  claude: anthropicTransport,
-  gemini: geminiTransport
+const TRANSPORTS: Record<string, RefractionTransport> = {
+  claude: new AnthropicTransport(),
+  gemini: new GeminiTransport()
 };
 
-export function transportFor(provider: string): RefractionTransport {
-  const t = TRANSPORTS[provider as ProviderId];
-  if (!t) throw new Error(`No transport registered for provider "${provider}".`);
-  return t;
+export function transportFor(provider: string): RefractionTransport | undefined {
+  return TRANSPORTS[provider.toLowerCase()];
 }
 
 export function defaultModelFor(provider: string): string {
-  return PROVIDERS.find((p) => p.id === provider)?.defaultModel ?? '';
+  switch (provider.toLowerCase()) {
+    case 'claude':
+      return 'claude-sonnet-4-20250514';
+    case 'gemini':
+      return 'gemini-2.5-flash';
+    default:
+      return '';
+  }
 }
+
+export const SUPPORTED_PROVIDERS = Object.keys(TRANSPORTS);

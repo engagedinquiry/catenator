@@ -1,38 +1,34 @@
-/**
- * gating.linear-sequential — a later step accessed without prior data redirects
- * to the earliest incomplete step; a satisfied step is reachable.
- */
-import test from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { redirectTarget } from '../src/app/core/gate-rules.ts';
+import { earliestIncomplete, canReach } from '../src/app/core/step-order.ts';
 
-const none = { hasTopic: false, hasSources: false, hasPersonas: false, hasRefractions: false };
-const topicOnly = { ...none, hasTopic: true };
-const throughPersonas = { hasTopic: true, hasSources: true, hasPersonas: true, hasRefractions: false };
-const complete = { hasTopic: true, hasSources: true, hasPersonas: true, hasRefractions: true };
-
-test('intro/topic are always reachable', () => {
-  assert.equal(redirectTarget('intro', none), null);
-  assert.equal(redirectTarget('topic', none), null);
+// gating.linear-sequential micro.redirect-on-incomplete: the earliest incomplete
+// step is where a direct access to any later step redirects.
+const s = (over) => ({
+  hasTopic: () => !!over.topic,
+  hasSources: () => !!over.sources,
+  hasPersonas: () => !!over.personas,
+  allRefracted: () => !!over.refracted
 });
 
-test('jumping to publish with nothing done redirects to topic (earliest incomplete)', () => {
-  assert.equal(redirectTarget('publish', none), 'topic');
-  assert.equal(redirectTarget('refract', none), 'topic');
+test('earliest incomplete walks the step order', () => {
+  assert.equal(earliestIncomplete(s({})), 'topic');
+  assert.equal(earliestIncomplete(s({ topic: 1 })), 'sources');
+  assert.equal(earliestIncomplete(s({ topic: 1, sources: 1 })), 'personas');
+  assert.equal(earliestIncomplete(s({ topic: 1, sources: 1, personas: 1 })), 'refract');
+  assert.equal(earliestIncomplete(s({ topic: 1, sources: 1, personas: 1, refracted: 1 })), 'publish');
 });
 
-test('with steps 1-3 done, refract is reachable but publish still redirects to refract', () => {
-  assert.equal(redirectTarget('refract', throughPersonas), null);
-  assert.equal(redirectTarget('publish', throughPersonas), 'refract');
+test('a gap in the middle still redirects to that gap, not further', () => {
+  // personas done but sources missing -> still blocked at sources
+  assert.equal(earliestIncomplete(s({ topic: 1, personas: 1, refracted: 1 })), 'sources');
 });
 
-test('a click on "sources" before a topic exists redirects to topic', () => {
-  assert.equal(redirectTarget('sources', none), 'topic');
-  assert.equal(redirectTarget('sources', topicOnly), null);
-});
-
-test('every step reachable once the whole flow is complete', () => {
-  for (const step of ['sources', 'personas', 'refract', 'publish']) {
-    assert.equal(redirectTarget(step, complete), null);
-  }
+test('canReach: intro + topic always open; later steps need everything before them', () => {
+  assert.equal(canReach('intro', s({})), true);
+  assert.equal(canReach('topic', s({})), true);
+  assert.equal(canReach('sources', s({})), false);
+  assert.equal(canReach('sources', s({ topic: 1 })), true);
+  assert.equal(canReach('publish', s({ topic: 1, sources: 1, personas: 1 })), false);
+  assert.equal(canReach('publish', s({ topic: 1, sources: 1, personas: 1, refracted: 1 })), true);
 });

@@ -1,184 +1,120 @@
+import { HttpError, MalformedResponseError } from './transports/errors';
+import type { CompilerError, Persona, SourceItem } from './models';
+import type { RefractionTransport } from './transports';
+
 /**
- * byok-compiler.contract — call an AI model with topic + sources + one persona
- * and return one refracted text.
+ * byok-compiler.contract — call an AI model with topic + sources + one persona,
+ * return one refracted text. Provider-agnostic: this file imports only the
+ * transport INTERFACE, never a concrete vendor (micro.model-agnostic).
  *
- * mustNever:
- *  - "Invent a value not present in topic text or sources"      -> system prompt hard rule
- *  - "Depend on a specific model provider"                      -> RefractionTransport injection;
- *                                                                 Anthropic & Gemini both live in
- *                                                                 ./transports/, neither imported here
- *  - "Fail silently on a call error"                            -> refractOnce returns a discriminated
- *                                                                 union; callers must handle {ok:false}
- *  - "Add content/sections/suggestions beyond what dimensions
- *     and topic/sources call for"                               -> system prompt no-scope rules
- *  - "Reference or imply material outside what was provided"    -> system prompt disclosure rule
- *
- * micro:
- *  - missing-value-behavior: state explicitly what is not specified, do not guess
- *  - model-agnostic: same input/output contract regardless of provider
- *  - call-failure-behavior: auto-retry the same call exactly once; on second
- *    failure return errorOutput; never present a failure as an empty success;
- *    log the raw response on malformed-response
- *  - no-unrequested-scope / no-speculation-about-external-material: prompt rules
- *
- * Framework-agnostic on purpose — plain functions, no Angular imports.
+ * contractShape:
+ *   input:  { topicText, sources[], persona {name, summary, dimensions[]} }
+ *   output: refractedText
+ *   error:  { type: network|rate-limit|malformed-response, message, retryable }
  */
-
-import type { CompilerError, Dimension, Persona, SourceItem } from '../model/models';
-
-export interface RefractionInput {
+export interface RefractInput {
   topicText: string;
   sources: SourceItem[];
-  persona: Persona;
+  persona: Pick<Persona, 'name' | 'summary' | 'dimensions'>;
 }
 
-export interface RefractionRequest extends RefractionInput {
-  apiKey: string;
-  provider: string;
-  model: string;
-}
-
-export interface RefractionResult {
-  personaId: string;
-  personaName: string;
-  output: string;
-  provider: string;
-  model: string;
-}
-
-export type RefractionOutcome =
-  | { ok: true; result: RefractionResult }
-  | { ok: false; error: CompilerError };
+export type RefractResult =
+  | { ok: true; text: string }
+  | { ok: false; error: CompilerError; rawLog?: string };
 
 /**
- * Provider-agnostic transport. An implementation takes the same request and
- * returns the model's text, or throws a TransportError. Any provider whose
- * implementation satisfies this shape is valid (build-config: Claude, Gemini).
+ * micro.no-unrequested-scope + no-speculation-about-external-material +
+ * missing-value-behavior: the prompt tells the model to answer only what the
+ * persona's dimensions and the provided input require, to state absent facts as
+ * absent, and to never imply material outside the input.
  */
-export type RefractionTransport = (
-  req: RefractionRequest,
-  system: string,
-  user: string
-) => Promise<string>;
+export function buildPrompt(input: RefractInput): string {
+  const sources = input.sources
+    .map(
+      (s, i) =>
+        `Source ${i + 1}\n  Title: ${s.title}\n  Reference: ${s.reference}\n  Description: ${s.description}`
+    )
+    .join('\n\n');
 
-export class TransportError extends Error {
-  readonly kind: CompilerError['type'];
-  readonly retryable: boolean;
-  readonly raw?: unknown;
-
-  constructor(kind: CompilerError['type'], message: string, retryable: boolean, raw?: unknown) {
-    super(message);
-    this.name = 'TransportError';
-    this.kind = kind;
-    this.retryable = retryable;
-    this.raw = raw;
-  }
-}
-
-const DIMENSION_DIRECTION: Record<Dimension, string> = {
-  Surface:
-    'Surface: choose format and density for this reader — prose, code, tables, or lists — and cut anything they would not read.',
-  Content:
-    'Content: set the posture — conceptual, procedural, or analytical — to match what this reader needs to do with the topic.',
-  Context:
-    'Context: frame the opening around what this reader is doing and the decision or task in front of them.',
-  Time: 'Time: respect this reader’s reading budget; lead with what matters most to them if the budget is short.',
-  Trust:
-    'Trust: match the evidence bar — plain assertion, explicit source references, or "traces to the topic text" attribution.'
-};
-
-export function buildSystemPrompt(): string {
   return [
-    'You are a refraction compiler. You are given one conceptual topic (with sources) and one reader persona.',
-    'Re-express the SAME topic for that specific reader. Change framing, ordering, format, depth, tone and emphasis to fit them.',
-    'Hard rule: never introduce a fact, number, name, capability, header, status code or claim that is not present in the supplied topic text or sources. No invention, no outside knowledge, no illustrative examples that assert new specifics.',
-    'If the topic text does not specify something this reader would want, say plainly that it is not specified here. Do not fill the gap, and do not say where such a value might otherwise be found or that other documentation exists — only what THIS input does or does not contain.',
-    'Answer only what the topic, the sources, and this persona’s stated dimensions require. Do not add extra sections, "you might also want to know" asides, or suggestions about related topics that are not in the input.',
-    'Keep the output as short as correctly serving this persona allows — do not pad with unrequested elaboration.',
-    'Return only the refracted piece as Markdown. No preamble, no notes about what you changed.'
+    'You are refracting one conceptual topic for one specific reader.',
+    '',
+    'TOPIC (the only source of facts):',
+    input.topicText.trim(),
+    '',
+    'SOURCES (grounding material — the only other source of facts):',
+    sources || '  (none provided)',
+    '',
+    'READER:',
+    `  Name: ${input.persona.name}`,
+    `  Summary: ${input.persona.summary}`,
+    `  Dimensions to shape for: ${input.persona.dimensions.join(', ') || '(none selected)'}`,
+    '',
+    'RULES — follow every one:',
+    '- Use ONLY facts stated in the TOPIC or SOURCES above. Never invent a value.',
+    '- If the reader would need a fact that is not specified, state plainly that',
+    '  this input does not specify it. Never say where it might otherwise be found,',
+    '  and never imply the existence of any documentation or material beyond what',
+    '  is provided here.',
+    '- Answer only what this reader\'s dimensions and the provided input require.',
+    '  No extra sections, no "you might also want to know", no speculative asides,',
+    '  no suggestions about related topics not present in the input.',
+    '- Be as short as correctly serving this reader allows. Do not pad.',
+    '',
+    'Write the refracted text now, and nothing else.'
   ].join('\n');
 }
 
-export function buildPrompt(input: RefractionInput): string {
-  const { topicText, sources, persona } = input;
-  const dims = persona.dimensions.length
-    ? persona.dimensions.map((d) => `- ${DIMENSION_DIRECTION[d]}`).join('\n')
-    : '- (no dimensions selected — use your judgement, still within the hard rule)';
-
-  const sourceBlock = sources.length
-    ? sources
-        .map(
-          (s, i) =>
-            `Source ${i + 1}:\n  Title: ${s.title || '(none given)'}\n  Reference: ${
-              s.reference || '(none given)'
-            }\n  Description: ${s.description || '(none given)'}`
-        )
-        .join('\n')
-    : '(no sources given)';
-
-  return [
-    '## Sources',
-    sourceBlock,
-    '',
-    '## Reader persona',
-    `Name: ${persona.name}`,
-    `Summary: ${persona.summary || '(none given)'}`,
-    'Dimensions to refract along:',
-    dims,
-    '',
-    '## Topic text (the only source of facts, together with the sources above)',
-    topicText.trim(),
-    '',
-    '## Task',
-    `Write the refracted version of this topic for "${persona.name}". Markdown only.`
-  ].join('\n');
-}
-
-function toCompilerError(e: unknown): CompilerError {
-  if (e instanceof TransportError) {
-    return { type: e.kind, message: e.message, retryable: e.retryable };
+/** Classify a thrown transport error into the structured errorOutput shape. */
+function classify(err: unknown): CompilerError {
+  if (err instanceof HttpError) {
+    if (err.status === 429) return { type: 'rate-limit', message: `Rate limited (HTTP 429).`, retryable: true };
+    return { type: 'network', message: `Provider returned HTTP ${err.status}.`, retryable: true };
   }
-  const message = e instanceof Error ? e.message : String(e);
-  return { type: 'network', message, retryable: true };
+  if (err instanceof MalformedResponseError) {
+    return { type: 'malformed-response', message: 'The model response could not be parsed.', retryable: true };
+  }
+  return { type: 'network', message: err instanceof Error ? err.message : 'Network error.', retryable: true };
 }
 
 /**
- * Run one refraction. On network error, rate limit, or malformed response,
- * retry the exact same call once automatically. If the retry also fails,
- * return { ok: false, error }. Never returns an empty successful result.
+ * micro.call-failure-behavior: on failure, retry the exact same call ONCE with no
+ * user action. If the retry also fails, return errorOutput (surfaced visibly by
+ * the caller, not console-only). Never retry more than once. Never present a
+ * failure as an empty success. Log the raw response on malformed-response.
+ *
+ * micro.no-unrequested-scope etc. are enforced by buildPrompt().
  */
 export async function refractOnce(
-  req: RefractionRequest,
-  transport: RefractionTransport
-): Promise<RefractionOutcome> {
-  const system = buildSystemPrompt();
-  const user = buildPrompt(req);
+  transport: RefractionTransport,
+  apiKey: string,
+  model: string,
+  input: RefractInput
+): Promise<RefractResult> {
+  const prompt = buildPrompt(input);
 
-  let lastError: CompilerError | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const text = (await transport(req, system, user)).trim();
-      if (!text) {
-        throw new TransportError('malformed-response', 'Model returned an empty response.', true);
+      const text = await transport.complete(prompt, apiKey, model);
+      const trimmed = text.trim();
+      if (!trimmed) {
+        // an empty body is a malformed response, not a successful empty result
+        throw new MalformedResponseError(JSON.stringify(text));
       }
-      return {
-        ok: true,
-        result: {
-          personaId: req.persona.id,
-          personaName: req.persona.name,
-          output: text,
-          provider: req.provider,
-          model: req.model
-        }
-      };
-    } catch (e) {
-      if (e instanceof TransportError && e.kind === 'malformed-response') {
-        // Log the raw response so a malformed-response failure can be diagnosed.
-        console.error('[byok-compiler] malformed response (raw):', e.raw ?? e.message);
+      return { ok: true, text: trimmed };
+    } catch (err) {
+      const isLastAttempt = attempt === 1;
+      if (!isLastAttempt) continue; // automatic single retry, same call
+      const error = classify(err);
+      const rawLog =
+        err instanceof MalformedResponseError ? err.raw : err instanceof HttpError ? err.body : undefined;
+      if (error.type === 'malformed-response' && rawLog) {
+        // log the raw API response so the failure can be diagnosed
+        console.error('[byok-compiler] malformed model response:', rawLog);
       }
-      lastError = toCompilerError(e);
-      if (!lastError.retryable) break;
+      return { ok: false, error, rawLog };
     }
   }
-  return { ok: false, error: lastError ?? { type: 'network', message: 'Unknown error', retryable: false } };
+  // unreachable
+  return { ok: false, error: { type: 'network', message: 'unreachable', retryable: false } };
 }

@@ -15,6 +15,11 @@ mustNever:
 contentScope:
   inScope: ["one conceptual topic", "up to 2 personas", "5 fixed dimensions"]
   excluded: ["block catalogs", "multi-topic management", "custom dimensions"]
+  fixedDimensions: ["Surface", "Content", "Context", "Time", "Trust"]
+    # The canonical list. Any component naming "the five fixed
+    # dimensions" (e.g. input-mode.dual's personas-format rule)
+    # refers to this list — it is not restated as its own separate
+    # authority anywhere else in the spec.
 personas:
   - id: author
     accessScope: full
@@ -44,3 +49,5 @@ components:
   - ref: components/check-grounding.yaml
   - ref: components/delivery-request-response.yaml
   - ref: components/step-introduction.yaml
+  - ref: components/branding-rename.yaml
+  - ref: components/style-visual-theme.yaml

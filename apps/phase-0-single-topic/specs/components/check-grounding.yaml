@@ -12,3 +12,11 @@ check.grounding:
   micro:
     - id: missing-fact-disclosure
       rule: "Absent facts stated as absent, not filled in"
+    - id: runs-as-a-publish-gate
+      rule: >
+        This check runs automatically, once per persona, at the
+        moment delivery.request-response is asked to serve that
+        persona's output — not at Refract, and not as a separate
+        step in the sequence. It is a gate ON Step 5 (Publish), not a
+        step of its own. See delivery.request-response's
+        grounding-gate rule for the enforcement point.

@@ -1,30 +1,27 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { FlowState, redirectTarget, StepPath } from './gate-rules';
 import { SessionStore } from './session-store';
+import { canReach, earliestIncomplete, StepPath } from './step-order';
+
+export { earliestIncomplete };
 
 /**
- * gating.linear-sequential — Angular wiring over the pure rules in gate-rules.ts.
+ * gating.linear-sequential — route guards over the pure step-order logic.
  *
- * mustNever: "Allow step-nav clicks to skip incomplete prior steps" — StepNav
- * rows are plain routerLinks, so a click on a locked step runs the same guard
- * and redirects back exactly as typing the URL would.
+ * micro.redirect-on-incomplete: a direct access to a later step redirects to
+ * `earliestIncomplete`. The step-nav panel renders plain routerLinks, so a click
+ * on a locked step hits the same guard (layout.three-panel.nav-display-only).
+ *
+ * interrupt.conditional-api-key.hard-block-at-refract-only is handled inside the
+ * Refract step, not here — a missing key is not "a prior step's data" and must
+ * not block Steps 0-3.
  */
-function flowState(s: SessionStore): FlowState {
-  return {
-    hasTopic: s.hasTopic(),
-    hasSources: s.hasSources(),
-    hasPersonas: s.hasPersonas(),
-    hasRefractions: s.hasRefractions()
-  };
-}
-
-function guardFor(step: StepPath): CanActivateFn {
+function guardFor(target: StepPath): CanActivateFn {
   return () => {
-    const store = inject(SessionStore);
+    const s = inject(SessionStore);
     const router = inject(Router);
-    const target = redirectTarget(step, flowState(store));
-    return target === null ? true : router.createUrlTree(['/' + target]);
+    if (canReach(target, s)) return true;
+    return router.createUrlTree(['/', earliestIncomplete(s)]);
   };
 }
 

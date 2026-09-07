@@ -12,6 +12,9 @@ delivery.request-response:
       - "Display a persona name using its underlying data structure's
          syntax (quote marks, YAML/JSON key names, list dashes) rather
          than plain text"
+      - "Serve a persona's output without first running
+         check.grounding against it — grounding is not optional and
+         not assumed to have already happened at Refract time"
   meso:
     personas:
       - id: reader
@@ -21,6 +24,15 @@ delivery.request-response:
       output: refractedText
       errorOutput: "structured error if personaId has no refracted output yet: {type: not-yet-refracted, message}"
   micro:
+    - id: grounding-gate
+      rule: >
+        Before returning a persona's output, run check.grounding
+        against it. If the check finds an ungrounded specific claim,
+        do not deliver the output — return a structured error
+        instead: {type: ungrounded-claim, message}. This check runs
+        every time delivery is requested for that persona, not once
+        at Refract time, so it catches drift even if Refract's own
+        output changes between runs.
     - id: exact-persona-match
       rule: "Response must come from state.topic-refraction's refractedOutputs map, keyed exactly by requested personaId"
     - id: topic-id-implicit-in-single-topic-scope

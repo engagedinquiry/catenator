@@ -10,9 +10,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICON_REGISTRY, IconName } from './icon-registry';
 
 /**
- * `<app-icon [name] [size]>` — renders a registry SVG string via innerHTML.
- * ViewEncapsulation.None so `svg { fill: currentColor }` reaches across the
- * innerHTML boundary.
+ * `<app-icon [name] [size]>` — renders a registry SVG string. ViewEncapsulation
+ * .None so `svg { fill: currentColor }` reaches across the innerHTML boundary.
  */
 @Component({
   selector: 'app-icon',
@@ -27,18 +26,10 @@ import { ICON_REGISTRY, IconName } from './icon-registry';
         line-height: 0;
         color: inherit;
       }
-      app-icon .app-icon-wrapper {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-      }
+      app-icon .app-icon-wrapper { display: inline-flex; width: 100%; height: 100%; }
       app-icon svg {
         width: var(--app-icon-size, 20px) !important;
         height: var(--app-icon-size, 20px) !important;
-        max-width: 100%;
-        max-height: 100%;
         fill: currentColor !important;
         display: block;
         pointer-events: none;

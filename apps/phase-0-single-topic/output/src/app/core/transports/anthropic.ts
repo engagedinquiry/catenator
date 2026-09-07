@@ -1,72 +1,53 @@
+import { HttpError, MalformedResponseError } from './errors';
+import type { RefractionTransport } from './index';
+
+export { HttpError, MalformedResponseError };
+
 /**
- * Anthropic (Claude) transport for byok-compiler.contract.
- *
- * One of two interchangeable implementations of RefractionTransport. The
- * compiler core (../refraction.ts) does not import this file — it is selected
- * at call time by provider, so nothing in the contract depends on Claude.
+ * Claude transport for byok-compiler.contract. The compiler core never imports
+ * this file directly (model-agnostic) — it is selected at call time by provider.
  */
+export class AnthropicTransport implements RefractionTransport {
+  readonly id = 'claude';
 
-import { RefractionRequest, RefractionTransport, TransportError } from '../refraction';
-
-const API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_VERSION = '2023-06-01';
-
-interface AnthropicResponse {
-  content?: Array<{ type: string; text?: string }>;
-  error?: { type: string; message: string };
-}
-
-export const anthropicTransport: RefractionTransport = async (
-  req: RefractionRequest,
-  system: string,
-  user: string
-): Promise<string> => {
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
+  async complete(prompt: string, apiKey: string, model: string): Promise<string> {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': req.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: req.model,
-        max_tokens: 2048,
-        system,
-        messages: [{ role: 'user', content: user }]
+        model,
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
       })
     });
-  } catch (e) {
-    throw new TransportError('network', e instanceof Error ? e.message : String(e), true, e);
-  }
 
-  const rawBody = await res.text();
-  let data: AnthropicResponse;
-  try {
-    data = JSON.parse(rawBody) as AnthropicResponse;
-  } catch {
-    throw new TransportError('malformed-response', `Non-JSON response (HTTP ${res.status}).`, true, rawBody);
-  }
+    if (!res.ok) {
+      const body = await res.text();
+      throw new HttpError(res.status, body);
+    }
 
-  if (res.status === 429) {
-    throw new TransportError('rate-limit', data.error?.message ?? 'Rate limited (HTTP 429).', true, rawBody);
+    const data: unknown = await res.json();
+    const text = readFirstText(data);
+    if (text === null) {
+      throw new MalformedResponseError(JSON.stringify(data));
+    }
+    return text;
   }
-  if (!res.ok || data.error) {
-    const msg = data.error?.message ?? `HTTP ${res.status}`;
-    const retryable = res.status >= 500;
-    throw new TransportError('network', `Claude API error: ${msg}`, retryable, rawBody);
-  }
+}
 
-  const output = (data.content ?? [])
-    .filter((b) => b.type === 'text' && b.text)
-    .map((b) => b.text!.trim())
-    .join('\n\n')
-    .trim();
+function readFirstText(data: unknown): string | null {
+  if (typeof data !== 'object' || data === null) return null;
+  const content = (data as { content?: unknown }).content;
+  if (!Array.isArray(content)) return null;
+  const first = content.find(
+    (b): b is { type: string; text: string } =>
+      typeof b === 'object' && b !== null && (b as { type?: unknown }).type === 'text'
+  );
+  return first ? first.text : null;
+}
 
-  if (!output) {
-    throw new TransportError('malformed-response', 'Claude response contained no text block.', true, rawBody);
-  }
-  return output;
-};

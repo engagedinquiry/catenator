@@ -39,14 +39,14 @@ input-mode.dual:
         with no separate "Persona 1:" label needed. The paragraph
         immediately following the heading is that persona's summary.
         A subsequent line containing a comma-separated list matching
-        one or more of the five fixed dimension names (Surface,
-        Content, Context, Time, Trust) is that persona's dimensions
-        list — recognized by matching against the known fixed set, not
-        by any label. No "Dimensions:" prefix is required or expected.
+        one or more of system.yaml's contentScope.fixedDimensions is
+        that persona's dimensions list — recognized by matching
+        against that canonical set, not by any label. No
+        "Dimensions:" prefix is required or expected.
     - id: parity-check-required
       rule: >
         Before treating a free-text parse as complete, run it against
-        fixtures/phase-0/rate-limiting/ — topic.txt,
+        apps/phase-0-single-topic/fixtures/rate-limiting/ — topic.md,
         sources-freetext-markdown.md, and personas-freetext.md — and
         confirm the parsed result matches expected-parsed.yaml exactly
         (same number of entries, same field values, dimensions matched

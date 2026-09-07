@@ -13,9 +13,19 @@ state.topic-refraction:
     fields:
       topicText: string
       sources: "list of {title, reference, description}"
-      personas: "list of {name, summary, dimensions[]} — max 2"
+      personas: "list of {id, name, summary, dimensions[]} — max 2"
       refractedOutputs: "map keyed by personaId -> text"
     persistenceScope: "in-memory / current session only — no persistence across page refresh or browser close in this phase"
   micro:
+    - id: persona-id-is-positional
+      rule: >
+        Each persona's id is assigned by authoring order, not derived
+        from its name: the first persona authored is "persona-0", the
+        second (if any) is "persona-1". This id is assigned once, at
+        the moment the persona is added, and never changes even if
+        the persona's name or summary is later edited. This is the
+        only id-derivation rule in the spec; byok-compiler.contract,
+        delivery.request-response, and refractedOutputs above all key
+        by this same positional id.
     - id: refracted-output-map
       rule: "Keyed by personaId — one entry per persona, never merged"
