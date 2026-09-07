@@ -5,8 +5,10 @@ navigation.routing:
     intent: >
       Every piece of content is reachable by a real, bookmarkable URL
       that mirrors its folder path exactly. Routing is driven entirely
-      by the app's own UI controls — never by parsing or intercepting
-      links rendered inside markdown content itself.
+      by the app's own UI controls. Rendered links inside markdown
+      content resolve using standard relative-path arithmetic against
+      the current file's own real location — the same resolution any
+      browser applies to a relative href, nothing app-specific.
     mustNever:
       - "Guess at, parse for intent, or infer meaning from a
          markdown-rendered <a> tag's text or attributes — this app
@@ -15,20 +17,19 @@ navigation.routing:
          path — the URL segment for a file or folder must match its
          real name, order prefix included, even though it's stripped
          for display"
-      - "Require content authors to write app-specific URL paths in
-         their own links — a relative file path, written the way any
-         normal markdown author naturally would, must resolve
-         correctly without the author knowing anything about the
-         app's routing scheme"
+      - "Maintain a separate, hardcoded list of folder names to
+         special-case link resolution — content links are resolved by
+         plain relative-path arithmetic only, never by checking
+         against any enumerated list"
   meso:
     personas:
       - id: reader
-        doing: "Navigates by clicking controls; the URL updates to match; a shared/bookmarked URL loads the same state directly"
+        doing: "Navigates by clicking controls or content links; the URL updates to match; a shared/bookmarked URL loads the same state directly"
     routes:
       - path: "/"
         shows: "Home state — docs/README.md, dropdown and Schema docs both unselected"
       - path: "/personas/:folder"
-        shows: "That persona's topic list AND its README.md rendered immediately"
+        shows: "That persona's topic list AND its default file rendered immediately"
       - path: "/personas/:folder/:file"
         shows: "That persona's file content"
       - path: "/schema/:path*"
@@ -39,26 +40,24 @@ navigation.routing:
         Every rendered <a href> that is a relative path (not starting
         with http://, https://, or /) is resolved by joining it
         against the CURRENTLY DISPLAYED FILE's own real path — plain
-        path arithmetic (resolving "../" and "./" segments the way any
-        browser resolves a relative URL), never by parsing the link's
-        text or guessing its intent. E.g. if the currently displayed
-        file is personas/tech-writers/README.md and it contains a
-        link to "../creators/design-document.md", the resolved target
-        is personas/creators/design-document.md — computed from the
-        current file's own location, not inferred from the link text.
-        This IS still link handling, distinct from the mustNever
-        above (semantic interpretation) — this rule performs pure
-        path-joining arithmetic only, with no judgment about what the
-        link "means."
+        path-joining arithmetic (resolving "../" and "./" segments
+        exactly as any browser resolves a relative URL), never by
+        parsing the link's text, guessing intent, or checking against
+        any list of known folder names. If the currently displayed
+        file is docs/README.md and it contains a link written as
+        "personas/1-creators/1-catenator-for-creators.md", the
+        resolved target is docs/personas/1-creators/1-catenator-for-
+        creators.md — because that's exactly what standard relative
+        resolution produces from that file's own location. No special
+        case is needed or applied.
     - id: resolved-link-becomes-app-navigation
       rule: >
-        Once a relative link is resolved to a real path (per
-        relative-link-resolution), clicking it navigates via the
-        app's own routing (the same mechanism as clicking a file in
-        the nav panel) — not a full page reload, not an external
-        navigation. If the resolved path doesn't correspond to a real
-        file, it falls through to navigation.routing's not-found
-        state, same as any other invalid route.
+        Once a relative link is resolved (per relative-link-
+        resolution), clicking it navigates via the app's own routing
+        — not a full page reload, not an external navigation. If the
+        resolved path doesn't correspond to a real file, it falls
+        through to the not-found state, same as any other invalid
+        route.
     - id: url-mirrors-real-path
       rule: "A route's path segments are the actual folder/file names on disk, including order prefixes."
     - id: direct-load-works
@@ -66,6 +65,6 @@ navigation.routing:
         Loading any valid route URL directly must produce the correct
         state — correct mode, correct dropdown/tree selection, correct
         content (including a persona route immediately showing its
-        README), correct active-state highlighting.
+        default file), correct active-state highlighting.
     - id: not-found-on-invalid-path
       rule: "A route pointing at a nonexistent file/folder shows a clear not-found state, not a blank page or crash."
