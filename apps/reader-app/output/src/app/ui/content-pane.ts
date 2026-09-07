@@ -20,7 +20,7 @@ import { ViewState } from '../state/view-state';
       @if (state.loading()) {
         <p class="note" role="status">Loading…</p>
       } @else if (res()?.type === 'content') {
-        <article class="markdown" [innerHTML]="html()"></article>
+        <article class="markdown" [innerHTML]="html()" (click)="onLinkClick($event)"></article>
       } @else if (res()?.type === 'not-found') {
         <div class="pane-state">
           <h2>Not found</h2>
@@ -65,5 +65,16 @@ export class ContentPane {
 
   label(name: string | null): string {
     return name ? folderLabel(name) : "";
+  }
+
+  /**
+   * navigation.routing.resolved-link-becomes-app-navigation: a click on a link
+   * inside rendered markdown that resolves to an internal path routes through
+   * the app (no page reload); external links are left to the browser.
+   */
+  onLinkClick(ev: MouseEvent): void {
+    const a = (ev.target as HTMLElement).closest('a');
+    if (!a) return;
+    if (this.state.followLink(a.getAttribute('href') ?? '')) ev.preventDefault();
   }
 }

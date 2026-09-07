@@ -8,12 +8,18 @@ navigation.routing:
       by the app's own UI controls — never by parsing or intercepting
       links rendered inside markdown content itself.
     mustNever:
-      - "Intercept or parse markdown-rendered <a> tags to derive
-         navigation — routes are set only by the app's own controls"
+      - "Guess at, parse for intent, or infer meaning from a
+         markdown-rendered <a> tag's text or attributes — this app
+         never does semantic link interpretation"
       - "Use a route structure that doesn't mirror the actual folder
          path — the URL segment for a file or folder must match its
          real name, order prefix included, even though it's stripped
          for display"
+      - "Require content authors to write app-specific URL paths in
+         their own links — a relative file path, written the way any
+         normal markdown author naturally would, must resolve
+         correctly without the author knowing anything about the
+         app's routing scheme"
   meso:
     personas:
       - id: reader
@@ -28,6 +34,31 @@ navigation.routing:
       - path: "/schema/:path*"
         shows: "The schema tree state, drilled to whatever depth :path* represents"
   micro:
+    - id: relative-link-resolution
+      rule: >
+        Every rendered <a href> that is a relative path (not starting
+        with http://, https://, or /) is resolved by joining it
+        against the CURRENTLY DISPLAYED FILE's own real path — plain
+        path arithmetic (resolving "../" and "./" segments the way any
+        browser resolves a relative URL), never by parsing the link's
+        text or guessing its intent. E.g. if the currently displayed
+        file is personas/tech-writers/README.md and it contains a
+        link to "../creators/design-document.md", the resolved target
+        is personas/creators/design-document.md — computed from the
+        current file's own location, not inferred from the link text.
+        This IS still link handling, distinct from the mustNever
+        above (semantic interpretation) — this rule performs pure
+        path-joining arithmetic only, with no judgment about what the
+        link "means."
+    - id: resolved-link-becomes-app-navigation
+      rule: >
+        Once a relative link is resolved to a real path (per
+        relative-link-resolution), clicking it navigates via the
+        app's own routing (the same mechanism as clicking a file in
+        the nav panel) — not a full page reload, not an external
+        navigation. If the resolved path doesn't correspond to a real
+        file, it falls through to navigation.routing's not-found
+        state, same as any other invalid route.
     - id: url-mirrors-real-path
       rule: "A route's path segments are the actual folder/file names on disk, including order prefixes."
     - id: direct-load-works

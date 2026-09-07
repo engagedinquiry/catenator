@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import { ContentBrowser, displayTitle, folderLabel, urlSegmentFor } from '../core/content-browser';
 import type { TreeNode } from '../core/content-browser';
 import { deliver, deliverHome, DeliveryResult } from '../core/delivery';
+import { classifyHref, resolveRelativePath, toRouteUrl } from '../core/link-resolve';
 import { pageTitle } from '../brand/brand';
 
 export type NavMode = 'none' | 'persona' | 'schema';
@@ -76,6 +77,15 @@ export class ViewState {
       // first-file-is-folder-default-content) renders immediately, no
       // placeholder (view.state.default-file-renders-immediately-on-persona-select).
       const folder = rest[0] ?? null;
+      const folderNode = folder ? this.browser.resolve(PERSONA_ROOT, [folder])?.node : null;
+      if (folder && (!folderNode || folderNode.type !== 'folder')) {
+        // a resolved link (or a typed URL) pointing at a persona folder that
+        // does not exist -> not-found, not an empty list.
+        this.set('persona', folder, [folder]);
+        this.notFound(clean);
+        this.title.setTitle(pageTitle(['Not found']));
+        return;
+      }
       const def = folder ? this.browser.defaultFileAt(PERSONA_ROOT, [folder]) : null;
       if (folder && def) {
         const real = [folder, def.name];
@@ -147,6 +157,38 @@ export class ViewState {
     const next = new Set(this.expanded());
     for (let i = 1; i < realSegments.length; i++) next.add(realSegments.slice(0, i).join('/'));
     this.expanded.set(next);
+  }
+
+  /**
+   * navigation.routing — the real on-disk directory the file currently in the
+   * content pane lives in. Home = docs/README.md, so its directory is the
+   * content root (`[]`). Persona/schema files sit under their root name.
+   */
+  private currentFileDir(): string[] {
+    const m = this.mode();
+    if (m === 'none') return []; // docs/README.md is at the content root
+    const root = m === 'persona' ? PERSONA_ROOT : SCHEMA_ROOT;
+    return [root, ...this.selectedSegments().slice(0, -1)];
+  }
+
+  /**
+   * navigation.routing micro.relative-link-resolution + resolved-link-becomes-
+   * app-navigation. Resolve a rendered markdown link and, if it is internal,
+   * navigate via the app's own router (no full reload). Returns true when the
+   * click was handled (caller should preventDefault); false to let the browser
+   * handle it (external links, bare "#" anchors).
+   */
+  followLink(href: string): boolean {
+    const kind = classifyHref(href);
+    if (kind === 'external' || kind === 'anchor') return false;
+    if (kind === 'absolute') {
+      void this.router.navigateByUrl(href.split('#')[0]);
+      return true;
+    }
+    // relative: pure path arithmetic against the current file's own location
+    const resolved = resolveRelativePath(this.currentFileDir(), href.split('#')[0]);
+    void this.router.navigateByUrl(toRouteUrl(resolved));
+    return true;
   }
 
   // ---- control actions: each navigates; applyRoute() rebuilds the state ----
