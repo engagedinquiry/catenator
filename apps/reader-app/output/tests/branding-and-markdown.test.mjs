@@ -25,8 +25,10 @@ function walk(dir) {
 test('branding: product name comes from build-config, present once as a literal', () => {
   assert.equal(BRAND.productName, 'Catenator Reader');
   assert.equal(BRAND_LINE, 'Catenator Reader · One idea, read your way');
+  // branding.rename micro.single-source-of-truth: the product name must not
+  // appear as a literal (quoted in code, or bare in markup) anywhere but brand.ts.
   const literals = walk(srcDir).filter(
-    (f) => !f.endsWith(join('brand', 'brand.ts')) && readFileSync(f, 'utf8').includes("'Catenator Reader'")
+    (f) => !f.endsWith(join('brand', 'brand.ts')) && readFileSync(f, 'utf8').includes(BRAND.productName)
   );
   assert.deepEqual(literals, [], `product name hardcoded outside brand.ts: ${literals}`);
 });
