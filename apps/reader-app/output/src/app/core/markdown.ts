@@ -24,8 +24,16 @@ function inline(s: string): string {
   out = out.replace(/`([^`]+)`/g, (_m, c) => `<code>${c}</code>`);
   out = out.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_m, alt, src) => `<img alt="${alt}" src="${src}">`);
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, txt, href) => {
-    const safe = /^(https?:|mailto:|#|\.?\/)/.test(href) ? href : '#';
-    return `<a href="${safe}"${safe.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${txt}</a>`;
+    // Preserve the href as authored — bare relative paths ("creators/README.md"),
+    // "#anchors", http(s):, and mailto: all pass through. Only dangerous URL
+    // schemes are neutralised. HomePage's click handler turns the persona links
+    // into internal routes (navigation.routes: active link interception); it can
+    // only do that if the real target survives to the DOM.
+    const scheme = href.match(/^\s*([a-z][a-z0-9+.-]*):/i);
+    const dangerous = scheme && !/^(https?|mailto)$/i.test(scheme[1]);
+    const safe = dangerous ? '#' : href;
+    const external = /^https?:/i.test(safe);
+    return `<a href="${safe}"${external ? ' target="_blank" rel="noopener"' : ''}>${txt}</a>`;
   });
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>');

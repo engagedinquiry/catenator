@@ -65,15 +65,20 @@ export class HomePage implements OnInit {
     }
   }
 
-  /** Intercept clicks on persona links (micro.home-link-interception). */
+  /**
+   * navigation.routes — active link interception. A persona link in the rendered
+   * README routes internally to /:personaId(/:topicId); any other in-repo
+   * relative link is kept inside the app (never a hard navigation to a raw .md
+   * or a 404). Only true external links (http/mailto) leave.
+   */
   onClick(ev: MouseEvent): void {
     const anchor = (ev.target as HTMLElement).closest('a');
     if (!anchor) return;
     const href = anchor.getAttribute('href') ?? '';
+    if (/^(https?:|mailto:)/i.test(href)) return; // external — let it through
+
+    ev.preventDefault();
     const route = internalRouteForHref(href);
-    if (route) {
-      ev.preventDefault();
-      void this.router.navigate(['/', ...route]);
-    }
+    void this.router.navigate(route ? ['/', ...route] : ['/']);
   }
 }
