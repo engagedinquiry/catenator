@@ -25,3 +25,19 @@ layout.three-panel:
       rule: "Panel 1 clicks never bypass gating.linear-sequential — display only"
     - id: reusable-template
       rule: "Panel 1 and Panel 3 read from a shared step-definition list, not hardcoded per step"
+    - id: narrow-viewport-notification
+      rule: >
+        Below a viewport width of 768px, show a dismissible
+        notification (e.g. a banner) stating plainly that this lab is
+        not optimized for small screens and is best used on a larger
+        display. This is a notice only — it does not collapse,
+        restructure, or hide any part of the three-panel layout. The
+        lab remains usable at narrow widths exactly as it already
+        renders; nothing about the layout itself changes at this
+        breakpoint.
+    - id: dismiss-persists-for-session
+      rule: >
+        Once dismissed, the notification does not reappear for the
+        remainder of the session (matching state.topic-refraction's
+        in-memory-only scope) — it may reappear on a fresh session,
+        since nothing persists beyond one.

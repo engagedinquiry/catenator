@@ -66,6 +66,18 @@ is hardcoded per step.
 This layout component is **purely visual**. It never touches gating, state, or
 any pipeline logic, and it can change without affecting any other component.
 
+### Small screens — a notice, not a redesign
+
+Below **768px** viewport width, a **dismissible banner** states plainly that the
+lab isn't optimized for small screens and is best used on a larger display. This
+is informational only — the three-panel layout itself does **not** collapse,
+restructure, or hide anything at this width; the lab remains exactly as usable
+(or as cramped) as it already renders below that breakpoint.
+
+Once dismissed, the notice does not reappear for the rest of the session — it's
+an in-memory dismissal, matching the lab's own no-persistence rule, so a fresh
+session can show it again.
+
 ## What each step does
 
 ### Step 0 — Introduction
@@ -90,10 +102,16 @@ modes** (see "Two ways to enter Sources and Personas").
 
 ### Step 3 — Personas
 
-Up to **two** readers. Each persona is **`name`, `summary`, and a list of
-dimensions** drawn from the five fixed dimension names: **Surface, Content,
-Context, Time, Trust**. A third persona must not be allowed. Entry is offered in
-the same two modes as Sources.
+Up to **two** readers. Each persona is **`id`, `name`, `summary`, and a list of
+dimensions** drawn from the five fixed dimension names, canonically listed in
+`system.yaml`'s `contentScope.fixedDimensions`: **Surface, Content, Context,
+Time, Trust**. A third persona must not be allowed. Entry is offered in the same
+two modes as Sources.
+
+A persona's `id` is assigned **by authoring order, not derived from its name**:
+the first persona is `persona-0`, the second (if any) is `persona-1`. The id is
+set once, at creation, and never changes even if the name or summary is later
+edited.
 
 ### Step 4 — Refract
 
@@ -105,7 +123,7 @@ the topic text, the sources, and that one persona.
 A **missing API key blocks only this step.** Steps 0–3 stay accessible whether
 or not a key is set.
 
-Refracted outputs are held as a **map keyed by persona** — one entry per
+Refracted outputs are held as a **map keyed by persona id** — one entry per
 persona, never merged.
 
 ### Step 5 — Publish
@@ -116,7 +134,8 @@ persona and nothing else; the single topic is supplied automatically behind the
 scenes.
 
 Before any output is delivered, it must pass the **grounding check** (see
-"Grounding").
+"Grounding") — this check runs here, as a gate on Publish, every time delivery
+is requested, not once at Refract time.
 
 ## Two ways to enter Sources and Personas
 
@@ -150,8 +169,8 @@ Both formats are **markdown**.
 - **Personas** use `## <name>` headings — **the heading text itself is the
   persona's name**, with no "Persona 1:" label. The paragraph immediately after
   the heading is the summary. A following line containing a comma-separated list
-  that matches one or more of the five fixed dimension names is that persona's
-  dimensions — **recognized by matching the known names, not by any
+  that matches one or more of `system.yaml`'s canonical `fixedDimensions` is that
+  persona's dimensions — **recognized by matching the known names, not by any
   "Dimensions:" label**. Matching a name that genuinely appears in the text is
   recognition, not inference.
 
@@ -163,16 +182,10 @@ step.
 ### Parity check
 
 Before a free-text parse is treated as complete, it must be run against the
-`rate-limiting` fixture set — the topic input, the sources markdown, and the
-personas markdown — and the parsed result must match the expected parsed output
-**exactly**: same number of entries, same field values, dimensions matched
-correctly with no label present.
-
-> **Spec note.** `input-mode.dual`'s `parity-check-required` rule names the
-> fixture path as `fixtures/phase-0/rate-limiting/` and the topic file as
-> `topic.txt`. The fixtures that exist are at
-> `apps/phase-0-single-topic/fixtures/rate-limiting/`, and the topic file there
-> is `topic.md`. A builder following the rule literally will not find the path.
+fixtures at `apps/phase-0-single-topic/fixtures/rate-limiting/` — `topic.md`,
+`sources-freetext-markdown.md`, and `personas-freetext.md` — and the parsed
+result must match `expected-parsed.yaml` **exactly**: same number of entries,
+same field values, dimensions matched correctly with no label present.
 
 ## The API key — asked for once, only when needed
 
@@ -188,9 +201,11 @@ The author sets a key via Settings if prompted.
 
 ## Refraction — bring your own key, provider-agnostic
 
-The compiler takes **the topic text, the sources, and one persona** (`name`,
-`summary`, `dimensions[]`) and returns **one refracted text**. It is called once
-per persona.
+The compiler takes **the topic text, the sources, and one persona** (`id`,
+`name`, `summary`, `dimensions[]`) and returns **one refracted text**. It is
+called once per persona — up to two calls per Refract action, since the action
+covers every persona in one click but the compiler's own contract handles one
+persona per call.
 
 Its contract is **the same regardless of model provider** — Claude, Gemini, or
 another. Nothing in the pipeline may depend on a specific vendor.
@@ -220,25 +235,30 @@ API response** on any malformed-response error so the failure can be diagnosed.
 
 ## Grounding — nothing ungrounded gets delivered
 
-Before delivery, refracted output is **verified to trace back to the topic or
-sources**. Output containing an **ungrounded specific claim must not be
-delivered**. Facts that are **absent from the source material are stated as
-absent**, never filled in.
+Grounding is a **gate on Step 5 (Publish)** — not its own step, and not part of
+Refract. It runs automatically, once per persona, at the moment delivery is
+requested for that persona; it is not a one-time check performed at Refract
+time. This means grounding catches drift even if what's held in
+`refractedOutputs` were somehow to change between the moment it was generated
+and the moment it's requested.
+
+Output containing an **ungrounded specific claim must not be delivered** — the
+request instead returns a structured error, `{type: ungrounded-claim, message}`.
+Facts that are **absent from the source material are stated as absent**, never
+filled in.
 
 This is a distinct governance check, layered on top of the compiler's own
 "don't invent values" instruction and the system-level rule that no refracted
-fact may be absent from the topic or sources.
-
-> **Spec note.** The grounding component (`check.grounding`) says the check runs
-> "before delivery" and names a `verifier` persona who "compares refracted
-> claims against source material," but the spec does not place grounding in the
-> step sequence (its own step? a gate on Publish? part of Refract?) and does not
-> say whether the comparison is automated or manual.
+fact may be absent from the topic or sources. The same underlying constraint is
+deliberately stated at three separate layers — the compiler's prompt, the
+grounding gate, and the system-level rule — as three independent lines of
+defense, not a redundancy to simplify away.
 
 ## Delivery — a reader picks a persona, nothing else
 
 A delivery request carries **a topic id and a persona id**; the response is that
-persona's refracted text. Delivery must never:
+persona's refracted text, after it passes the grounding gate above. Delivery
+must never:
 
 - return **a different persona's output** than the one requested,
 - return output for **a persona that hasn't been refracted yet** — instead it
@@ -246,7 +266,8 @@ persona's refracted text. Delivery must never:
 - **ask the reader for a topic id.** The topic id stays in the underlying
   contract (for future multi-topic phases) but is **not a user-facing input**
   while the lab is single-topic; the app supplies the one existing topic's id
-  automatically.
+  automatically,
+- **serve output that hasn't passed the grounding gate.**
 
 The response comes from the refracted-outputs map, **keyed exactly by the
 requested persona id**. The persona selector is the **only input the reader
@@ -263,18 +284,17 @@ human-readable disambiguator is genuinely needed, use plain language.
 
 ## State — everything is in memory
 
-All authored data — `topicText`, `sources`, `personas`, `refractedOutputs` —
-lives **in memory for the current session only**. There is **no persistence
-across a page refresh or a browser close** in this phase.
+All authored data — `topicText`, `sources`, `personas` (each with its `id`), and
+`refractedOutputs` — lives **in memory for the current session only**. There is
+**no persistence across a page refresh or a browser close** in this phase.
 
 State must never be **lost or overwritten between steps**: navigating the steps
 never clears anything the author entered; only an explicit author edit changes a
 value.
 
-> **Spec note.** Combined with the redirect-on-incomplete gating rule, a page
-> refresh while on Step 4 discards all state and returns the author to Step 1.
-> The spec does not call this out, but it is a direct consequence of the two
-> rules.
+> **Note.** Combined with the redirect-on-incomplete gating rule, a page refresh
+> while on Step 4 discards all state and returns the author to Step 1. This is a
+> direct, accepted consequence of the two rules, not a bug.
 
 ## What's explicitly out of scope
 
@@ -291,7 +311,9 @@ A consistent visual style — icons, colors, step-badge states, panel treatment 
 matching an existing reference application's look and feel, **without importing
 or depending on that application's codebase**. Styling values and icon assets
 are **copied in as static files**; nothing loads from the reference app at
-runtime.
+runtime. This is in scope for this build, alongside branding — both
+`components/branding-rename.yaml` and `components/style-visual-theme.yaml` are
+wired into `system.yaml`'s component list.
 
 The styling pass applies only to the **existing three-panel layout and the step
 navigation** — it does not restructure the layout, and it must not change any
@@ -313,15 +335,12 @@ titles, and component/file names, and every occurrence is reported before
 anything changes. Every file changed by the rename is reported so it can be
 verified.
 
-> **Spec note.** `system.yaml` lists nine components and does **not** reference
-> `components/branding-rename.yaml` or `components/style-visual-theme.yaml`,
-> though both files exist under `specs/components/`. Whether the branding and
-> visual-style work is in scope for this build is not stated. Their content is
-> summarized in this section on the assumption that it is.
->
-> `style.visual-theme` also names the reference application by an **absolute
-> local path** (`C:\Users\parth\ei\eisyntaxia_repos\syntaxia-studio`), which
-> only resolves on the machine the spec was written on.
+> **Known limitation.** `style.visual-theme` names the reference application by
+> an **absolute local path** (`C:\Users\parth\ei\eisyntaxia_repos\syntaxia-studio`),
+> which only resolves on the machine the spec was originally written on. A build
+> run anywhere else falls back to reusing the already-committed design-system
+> tokens rather than performing a fresh inspection of the reference app — this
+> is accepted as a known gap, not yet fixed.
 
 ## Technology
 
@@ -330,49 +349,3 @@ Not stated in `specs/`. The technology and provider are named in
 itself. Several rules — matching "the existing Metadata form," running against
 existing fixtures, scanning for a prior product name — assume the build extends
 an existing codebase rather than starting from nothing.
-
-## Where the spec is unclear or contradictory
-
-Collected from the notes above, plus the rest:
-
-1. **Two component files are not wired into `system.yaml`.**
-   `branding-rename.yaml` and `style-visual-theme.yaml` exist but are absent
-   from the `components:` list. In-scope status is undefined.
-
-2. **The parity-check fixture path and filename in the spec don't match what
-   exists.** `input-mode.dual` says `fixtures/phase-0/rate-limiting/topic.txt`;
-   the repo has `apps/phase-0-single-topic/fixtures/rate-limiting/topic.md`.
-
-3. **How a persona gets an id is never stated.** Personas are authored with
-   `name`, `summary`, `dimensions` — no `id`. But `state.topic-refraction`,
-   `byok-compiler.contract`, and `delivery.request-response` all key by
-   `personaId`. `delivery`'s clean-name rule mentions "persona-0" as a possible
-   internal id, implying a positional id, but no rule defines the derivation.
-
-4. **Grounding has no place in the step sequence.** It must happen "before
-   delivery" and block ungrounded claims, but the spec doesn't say whether it is
-   its own step, a gate on Publish, or part of Refract, nor whether it is
-   automated or a manual verifier action.
-
-5. **The five dimension names appear in only one place.** `system.yaml` and
-   `contentScope` say "5 fixed dimensions" without naming them; the names
-   (Surface, Content, Context, Time, Trust) are stated only inside
-   `input-mode.dual`'s `personas-format` micro rule. A builder reading
-   `system.yaml` alone would not know them.
-
-6. **`delivery.request-response` is filed under the `content governance`
-   domain**, whose vocabulary definition ("capturing and structuring authored
-   material … before it's used downstream") is about input capture, not
-   delivery. `check.grounding` and `state.topic-refraction` share that domain
-   more naturally.
-
-7. **The same "nothing ungrounded / nothing invented" constraint is stated three
-   times** at three layers — `system.yaml` mustNever, `byok-compiler.contract`
-   mustNever, and `check.grounding` mustNever. Not a contradiction, but a builder
-   should treat the grounding check as a real separate gate, not just prompt
-   wording.
-
-8. **"One action, multiple calls" at Refract.** `byok-compiler.contract` takes a
-   single persona per call, while `refract-all-personas-one-action` requires one
-   UI action to cover every persona. The compiler is therefore invoked up to
-   twice per Refract action — consistent, but worth stating.

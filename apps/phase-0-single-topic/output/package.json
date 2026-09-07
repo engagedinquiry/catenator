@@ -9,7 +9,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "node tests/run.mjs",
-    "verify:refraction": "node --experimental-strip-types scripts/verify-refraction.mjs"
+    "verify:refraction": "node --experimental-strip-types --import ./tests/register.mjs scripts/verify-refraction.mjs"
   },
   "dependencies": {
     "@angular/common": "^22.1.0",

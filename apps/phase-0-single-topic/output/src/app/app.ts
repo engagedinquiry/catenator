@@ -6,6 +6,7 @@ import { BRAND, BRAND_LINE, BRAND_TITLE } from './brand/brand';
 import { SessionStore } from './core/session-store';
 import { AppIcon } from './ui/app-icon';
 import { KeyBanner } from './ui/key-banner';
+import { NarrowViewportNotice } from './ui/narrow-viewport-notice';
 import { STEP_BY_PATH } from './ui/step-defs';
 import { StepGuide } from './ui/step-guide';
 import { StepNav } from './ui/step-nav';
@@ -18,7 +19,7 @@ import { StepNav } from './ui/step-nav';
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, AppIcon, StepNav, StepGuide, KeyBanner],
+  imports: [RouterOutlet, RouterLink, AppIcon, StepNav, StepGuide, KeyBanner, NarrowViewportNotice],
   template: `
     <div class="studio-shell">
       <nav class="rail">
@@ -43,6 +44,7 @@ import { StepNav } from './ui/step-nav';
           }
           <main class="panel panel-center">
             <div class="wrap">
+              <app-narrow-viewport-notice />
               @if (isStep()) {
                 <app-key-banner [current]="currentPath()" />
               }
