@@ -1,0 +1,131 @@
+/* =========================================================================
+   Catenator light design system — tokens & utilities.
+
+   style.visual-theme: the same visual language every Catenator app uses. The
+   token values below are the committed result of Phase 0's reference-app
+   inspection (syntaxia-studio: global stylesheet + CSS custom properties, no
+   CSS framework, custom SVG icons, no markdown library). Nothing here loads
+   from or depends on that reference app at runtime.
+
+   Adapted for this app's UI (persona switcher, topic list, content pane) — the
+   step-nav / completed-active-upcoming rules do NOT apply here; "selected" gets
+   the filled-background treatment instead.
+   ========================================================================= */
+
+:root {
+  --rail-bg: #1a73e8;
+  --rail-active: #1557b0;
+  --panel-bg: #f8fafc;
+  --canvas-bg: #ffffff;
+  --border-subtle: #e2e8f0;
+  --border-control: #cbd5e1;
+  --text-title: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --accent-blue: #2563eb;
+  --accent-blue-strong: #1d4ed8;
+  --accent-blue-light: #eff6ff;
+  --ok: #15803d;
+
+  --radius-control: 4px;
+  --radius-card: 6px;
+  --radius-pill: 12px;
+
+  --font-sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Roboto Slab", "Roboto", Georgia, "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--panel-bg);
+  color: var(--text-body);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+a { color: var(--accent-blue); }
+
+/* ---- Shell ------------------------------------------------------------- */
+
+.studio-shell { display: flex; flex-direction: row; height: 100vh; width: 100%; overflow: hidden; }
+.shell-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.shell-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  background: var(--canvas-bg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.topbar-brand {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  margin-right: auto;
+}
+.topbar-link {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-subtle);
+}
+.topbar-link:hover { background: #f1f5f9; color: var(--text-title); }
+
+/* ---- Shared bits ----------------------------------------------------------- */
+
+h1 { font-size: 1.25rem; margin: 0 0 6px; color: var(--text-title); font-family: var(--font-display); }
+h2 { font-size: 0.9375rem; margin: 26px 0 8px; color: var(--text-title); font-family: var(--font-display); }
+p.lead { color: var(--text-muted); margin-top: 0; }
+
+code {
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--accent-blue);
+}
+
+/* ---- Rendered markdown --------------------------------------------------- */
+
+.markdown { color: var(--text-body); }
+.markdown h1 { font-size: 1.4rem; margin: 0 0 12px; }
+.markdown h2 { font-size: 1.1rem; margin: 28px 0 10px; }
+.markdown h3 { font-size: 0.95rem; margin: 22px 0 8px; color: var(--text-title); font-family: var(--font-display); }
+.markdown p { margin: 0 0 14px; }
+.markdown ul, .markdown ol { margin: 0 0 14px; padding-left: 22px; }
+.markdown li { margin: 3px 0; }
+.markdown blockquote {
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  border-left: 3px solid var(--border-control);
+  color: var(--text-muted);
+}
+.markdown pre.code {
+  background: var(--canvas-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.markdown pre.code code { background: none; padding: 0; color: var(--text-body); }
+.markdown hr { border: 0; border-top: 1px solid var(--border-subtle); margin: 24px 0; }
+.markdown a { text-decoration: underline; }
+.markdown img { max-width: 100%; }

@@ -1,0 +1,51 @@
+persona.catalog:
+  macro:
+    systemName: "persona.catalog"
+    domain: "content governance"
+    intent: >
+      Define the fixed set of personas a reader can choose from —
+      the same six audiences already defined under the configured
+      content source root, not a new or open-ended set.
+    mustNever:
+      - "Invent a persona not already represented by a folder under
+         build-config.yaml's contentSource.rootDir"
+      - "Let the reader add a custom persona — this catalog is fixed"
+      - "Hardcode the source root path — always resolve sourceFolder
+         relative to contentSource.rootDir from build-config.yaml"
+  meso:
+    personas:
+      - id: reader
+        doing: "Picks one persona from this fixed list at a time"
+    catalog:
+      # sourceFolder values are relative to build-config.yaml's
+      # contentSource.rootDir (e.g. "docs") — NOT absolute paths.
+      - id: creators
+        label: "Creators"
+        sourceFolder: "creators/"
+      - id: tech-writers
+        label: "Tech writers"
+        sourceFolder: "tech-writers/"
+      - id: knowledge-teams
+        label: "Knowledge teams"
+        sourceFolder: "knowledge-teams/"
+      - id: integrators
+        label: "Integrators"
+        sourceFolder: "integrators/"
+      - id: engineers
+        label: "Engineers"
+        sourceFolder: "engineers/"
+      - id: governing-docs
+        label: "Governing docs"
+        sourceFolder: "governing-docs/"
+  micro:
+    - id: fixed-list-only
+      rule: "The persona list is exactly these six, read from this
+             component — not derived dynamically from scanning the
+             content source root at runtime, so adding a seventh
+             persona is a deliberate spec change, not something the
+             app discovers on its own."
+    - id: relative-to-config
+      rule: "Every sourceFolder is joined with build-config.yaml's
+             contentSource.rootDir at runtime — changing rootDir (e.g.
+             to point at a different docs tree entirely) must not
+             require editing this component."

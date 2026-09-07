@@ -1,0 +1,34 @@
+delivery.request-response:
+  macro:
+    systemName: "delivery.request-response"
+    domain: "reader-controlled delivery"
+    intent: "Return the correct file's content for a given topic + persona pair."
+    mustNever:
+      - "Return content for a persona/topic pair other than what was
+         requested"
+      - "Guess a persona if the reader hasn't explicitly chosen one —
+         require an explicit selection before delivering anything"
+  meso:
+    personas:
+      - id: reader
+        doing: "Requests content by topic id + persona id, both explicit"
+    contractShape:
+      input: [topicId, personaId]
+      output: markdownContent
+      errorOutput: >
+        {type: not-available-for-persona, message} when
+        content.source's topicMap has null for this pair
+  micro:
+    - id: both-explicit
+      rule: >
+        Unlike a single-topic app, this reader app has multiple
+        topics AND multiple personas — both must be explicit reader
+        choices, always visible as two separate selectors (persona
+        switcher, topic list), never one implied by the other.
+    - id: default-on-load
+      rule: >
+        On first load, default topicId to "start" and personaId to
+        none-selected — the reader must actively pick a persona before
+        any persona-specific content is shown; the "start" topic's
+        content can still show generic framing before a persona is
+        chosen, if such framing exists.

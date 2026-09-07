@@ -1,0 +1,30 @@
+{
+  "name": "catenator-reader-app",
+  "version": "0.0.0",
+  "description": "Catenator Reader — One idea, read your way. Reader-controlled delivery of governed content (Delivery-only, no authoring).",
+  "private": true,
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "sync:content": "node scripts/sync-content.mjs",
+    "test": "node tests/run.mjs"
+  },
+  "dependencies": {
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.4",
+    "@angular/cli": "^22.1.4",
+    "@angular/compiler-cli": "^22.1.0",
+    "typescript": "~6.0.2"
+  }
+}

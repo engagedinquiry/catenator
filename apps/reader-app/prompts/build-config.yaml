@@ -1,0 +1,20 @@
+# Build config — reader-app
+
+specPath: "apps/reader-app/specs/"
+outputPath: "apps/reader-app/output/"
+
+contentSource:
+  rootDir: "docs"   # relative to repo root. Everything under
+                     # persona-catalog.yaml's sourceFolder and
+                     # content-source.yaml's topicMap is relative to
+                     # THIS value, not hardcoded to "docs/".
+  mode: "pre-authored"   # no generation — every file read from here
+                         # already exists, written by hand.
+
+techStack:
+  frontend: "Angular"
+
+branding:
+  productName: "Catenator Reader"
+  tagline: "One idea, read your way"
+  priorNames: []
