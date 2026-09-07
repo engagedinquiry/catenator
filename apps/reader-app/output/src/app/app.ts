@@ -1,129 +1,129 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { Title } from '@angular/platform-browser';
-import { BRAND, BRAND_LINE, BRAND_TITLE } from './brand/brand';
-import { FolderBrowser } from './core/folder-browser';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
+import { BRAND } from './brand/brand';
+import { ContentBrowser } from './core/content-browser';
 import { ViewState } from './state/view-state';
-import { AppIcon } from './ui/app-icon';
-import { HomeView } from './ui/home-view';
-import { ListView } from './ui/list-view';
-import { ContentView } from './ui/content-view';
-import { CategorySwitcher } from './ui/category-switcher';
+import { NavPanel } from './ui/nav-panel';
+import { ContentPane } from './ui/content-pane';
 
 /**
- * The whole shell. There is no router — `state.current()` decides which view
- * renders (view.state). The rail + top bar are constant; everything below
- * switches on the single state variable.
+ * layout.shell — a fixed-position left panel (full viewport height, fixed width,
+ * always visible above the mobile breakpoint) and a content pane that scrolls
+ * independently. Below 768px (the single breakpoint shared with
+ * ui.edge-cases.mobile-collapsible-nav) the panel collapses behind a toggle.
+ *
+ * The root component owns URL -> state: on every NavigationEnd it hands the URL
+ * to ViewState.applyRoute(), so a bookmarked/direct load produces the same state
+ * as clicking through (navigation.routing.direct-load-works).
  */
 @Component({
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppIcon, HomeView, ListView, ContentView, CategorySwitcher],
+  imports: [NavPanel, ContentPane],
   template: `
-    <div class="studio-shell">
-      <nav class="rail">
-        <button type="button" class="rail-btn" [title]="brand.productName" (click)="state.goHome()">
-          <app-icon name="icon-catenator-logo" [size]="24" />
-        </button>
-      </nav>
+    <div class="shell" [class.nav-open]="navOpen()">
+      <button
+        type="button"
+        class="nav-toggle"
+        aria-label="Toggle navigation"
+        [attr.aria-expanded]="navOpen()"
+        (click)="navOpen.set(!navOpen())">
+        ☰
+      </button>
 
-      <div class="shell-main">
-        <header class="shell-topbar">
-          <span class="topbar-brand">{{ brandLine }}</span>
-        </header>
+      <aside class="left-panel">
+        @if (browser.ready()) {
+          <app-nav-panel />
+        } @else if (browser.error()) {
+          <p class="panel-error">Could not load the content index ({{ browser.error() }}).</p>
+        } @else {
+          <p class="panel-error">Loading…</p>
+        }
+      </aside>
 
-        <div class="workspace">
-          @if (!browser.ready() && browser.error()) {
-            <div class="pane-state">
-              <h2>Could not load the content index</h2>
-              <p>{{ browser.error() }}</p>
-            </div>
-          } @else {
-            @switch (state.current()) {
-              @case ('home') {
-                <app-home-view />
-              }
-              @case ('categoryList') {
-                <app-list-view
-                  [heading]="categoryHeading()"
-                  [items]="state.categories()"
-                  [selected]="state.selectedCategory()"
-                  (pick)="state.chooseCategory($event)"
-                  (home)="state.goHome()" />
-              }
-              @case ('fileList') {
-                <div class="view-bar"><app-category-switcher /></div>
-                <app-list-view
-                  [heading]="state.selectedCategory() ?? ''"
-                  [items]="state.files()"
-                  [selected]="state.selectedFile()"
-                  [parentLabel]="state.activeRoot()"
-                  (pick)="state.chooseFile($event)"
-                  (back)="state.backToCategories()"
-                  (home)="state.goHome()" />
-              }
-              @case ('content') {
-                <div class="view-bar"><app-category-switcher /></div>
-                <app-content-view />
-              }
-            }
-          }
-        </div>
-      </div>
+      <main class="content-pane" (click)="closeNavOnMobile()">
+        <app-content-pane />
+      </main>
     </div>
   `,
   styles: [
     `
-      .rail {
-        width: 48px;
-        min-width: 48px;
-        height: 100%;
-        background: var(--rail-bg);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 16px 0;
-        box-sizing: border-box;
+      .shell { height: 100vh; overflow: hidden; }
+
+      .left-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 264px;
+        height: 100vh;
+        background: var(--panel-bg);
+        border-right: 1px solid var(--border-subtle);
+        z-index: 20;
       }
-      .rail-btn {
-        background: transparent;
-        border: 0;
-        padding: 0;
+      .panel-error { padding: 16px; font-size: 0.8125rem; color: var(--text-muted); }
+
+      /* content-pane: to the right of the fixed panel, scrolls on its own */
+      .content-pane {
+        margin-left: 264px;
+        height: 100vh;
+        overflow-y: auto;
+        background: var(--panel-bg);
+      }
+
+      .nav-toggle {
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 30;
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border-control);
+        border-radius: var(--radius-control);
+        background: var(--canvas-bg);
+        font-size: 1rem;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        color: #ffffff;
       }
-      .workspace { flex: 1; min-height: 0; overflow-y: auto; background: var(--panel-bg); }
-      .view-bar {
-        display: flex;
-        justify-content: flex-end;
-        max-width: 780px;
-        margin: 0 auto;
-        padding: 14px 32px 0;
+
+      @media (max-width: 768px) {
+        .left-panel {
+          transform: translateX(-100%);
+          transition: transform 0.2s ease;
+          box-shadow: 0 0 24px rgba(15, 23, 42, 0.15);
+        }
+        .shell.nav-open .left-panel { transform: translateX(0); }
+        .content-pane { margin-left: 0; padding-top: 44px; }
+        .nav-toggle { display: block; }
       }
     `
   ]
 })
-export class App implements OnInit {
+export class App {
   readonly brand = BRAND;
-  readonly brandLine = BRAND_LINE;
+  readonly browser = inject(ContentBrowser);
   readonly state = inject(ViewState);
-  readonly browser = inject(FolderBrowser);
+  private router = inject(Router);
 
-  // Generic: the heading is just the chosen root's own name — no per-root label
-  // table, nothing about personas or sections hardcoded.
-  readonly categoryHeading = computed(() => (this.state.activeRoot() ?? '').replace(/\/$/, ''));
+  readonly navOpen = signal(false);
 
   constructor() {
-    inject(Title).setTitle(BRAND_TITLE);
+    this.boot();
   }
 
-  async ngOnInit(): Promise<void> {
+  private async boot(): Promise<void> {
     await this.browser.load();
-    await this.state.loadHome();
+    await this.state.applyRoute(this.router.url);
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        this.navOpen.set(false);
+        void this.state.applyRoute(e.urlAfterRedirects);
+      });
+  }
+
+  closeNavOnMobile(): void {
+    if (this.navOpen()) this.navOpen.set(false);
   }
 }

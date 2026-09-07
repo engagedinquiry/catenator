@@ -4,10 +4,10 @@
    style.visual-theme: the same visual language every Catenator app uses. Token
    values are the committed result of the syntaxia-studio reference inspection
    (global stylesheet + CSS custom properties, no CSS framework, custom SVG
-   icons, no markdown library). Nothing here loads from that reference at runtime.
+   icons, no markdown library). Nothing loads from that reference at runtime.
 
-   Applied to this app's actual UI: the two home options, the category list, the
-   file list, the content pane. Selected list item = filled background.
+   Applied to: the fixed left nav panel, the "Reading as" dropdown, the schema
+   tree, and the content pane. Selected list/tree item = filled accent.
    ========================================================================= */
 
 :root {
@@ -45,33 +45,8 @@ body {
 
 a { color: var(--accent-blue); }
 
-.studio-shell { display: flex; flex-direction: row; height: 100vh; width: 100%; overflow: hidden; }
-.shell-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
-
-.shell-topbar {
-  display: flex;
-  align-items: center;
-  height: 44px;
-  flex-shrink: 0;
-  padding: 0 16px;
-  background: var(--canvas-bg);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.topbar-brand {
-  font-family: var(--font-display);
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-}
-
 h1 { font-size: 1.4rem; margin: 0 0 8px; color: var(--text-title); font-family: var(--font-display); }
 h2 { font-size: 1.05rem; margin: 24px 0 10px; color: var(--text-title); font-family: var(--font-display); }
-p.lead { color: var(--text-muted); margin-top: 0; }
-
-.pane-state { max-width: 640px; margin: 40px auto; padding: 0 32px; }
-.pane-state h2 { margin-top: 0; }
 
 code {
   background: #f1f5f9;
@@ -121,13 +96,5 @@ code {
   overflow-x: auto;
 }
 .markdown th,
-.markdown td {
-  border: 1px solid var(--border-subtle);
-  padding: 7px 10px;
-  text-align: left;
-}
-.markdown th {
-  background: var(--panel-bg);
-  font-family: var(--font-display);
-  color: var(--text-title);
-}
+.markdown td { border: 1px solid var(--border-subtle); padding: 7px 10px; text-align: left; }
+.markdown th { background: var(--panel-bg); font-family: var(--font-display); color: var(--text-title); }

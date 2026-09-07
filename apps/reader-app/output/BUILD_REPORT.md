@@ -1,57 +1,44 @@
 # Build report — reader-app
 
-## Component update — view.state + content.folder-browser
+Full rebuild from `apps/reader-app/specs/` per `apps/shared/BUILD_INSTRUCTIONS.md`.
+`output/` was deleted and regenerated — the rewritten spec (real URL routing, a
+persistent fixed nav panel, a recursive tree, order-prefix handling) shares no
+code with the previous "no-router folder browser" design.
 
-`RUN.md` scoped a run to
-`COMPONENTS = ["components/view-state.yaml", "components/content-folder-browser.yaml"]`.
-New rules and their implementation:
+## Components built (all new)
 
-| New rule | Implementation |
+| Component | Source |
 |---|---|
-| `content.folder-browser` behavior: `docs/README.md` rendered on home as the one-file case of the same mechanism | `build-manifest.mjs` copies `docs/README.md` and records `manifest.home = "README.md"`; `FolderBrowser.homeFile()` / `homeFileUrl()`; `ViewState.loadHome()` calls the same `deliver()` with empty root+category; `HomeView` renders it above the two options. |
-| `two-instances-same-mechanism` → now three uses (content/, schema/, home README) | same `deliver()` + `renderFile()` path; `deliver()` allows empty root+category only for the one-file case. |
-| `full-markdown-rendering`: GFM tables (pipe syntax) → real `<table>`, not literal pipes | `markdown.ts` gained a pipe-table parser (header row + `\| --- \| :--: \|` delimiter → `<table><thead>…<tbody>…`, with `text-align` from `:--`/`--:`). Test `markdown: GFM pipe table renders as a real <table>`. Verified in-browser on `docs/schema/3-views/3.1-interface.md` — 2 `<th>`, 10 `<td>`, bordered. |
-| `view.state` home: README content THEN the two options | `HomeView` template. |
-| `view.state` fileList: + sibling-category dropdown, jump without returning to categoryList | `CategorySwitcher` (`<select>` of `siblingCategories()`), shown in the fileList view; `switchCategory()` → target category's fileList. |
-| `view.state` content: + same dropdown; switching jumps to that category's fileList, not Home | `CategorySwitcher` shown in the content view too; verified: from a content page, choosing "creators" landed on the creators fileList. |
-| `category-switcher-dropdown` micro | **NOTE: this micro rule is truncated in the spec file** — it ends mid-sentence at "Once inside a category (fileList or". Implemented from the fully-specified `meso.states` descriptions for fileList and content. |
-
-Tests 15 → 17. Production build 147 → 150 kB. All prior behaviour unchanged.
-
----
-
-
-Full build from `apps/reader-app/specs/` per `apps/shared/BUILD_INSTRUCTIONS.md`.
-`output/` was deleted and regenerated from scratch — this app shares no code
-with the previous (routed, persona-catalog) design, which the rewritten spec
-forbids.
-
-## Spec set this build
-
-`system.yaml` was rewritten: two entry points, one generic folder browser, no
-URL routing, nothing hardcoded. Components:
-
-| Component | Status | Source |
-|---|---|---|
-| `content-folder-browser.yaml` | built new | `scripts/build-manifest.mjs`, `src/app/core/folder-browser.ts` |
-| `view-state.yaml` | built new | `src/app/state/view-state.ts` |
-| `delivery-request-response.yaml` | built new (rewritten spec) | `src/app/core/delivery.ts` |
-| `style-visual-theme.yaml` | built new, reusing the Catenator design-system token values (committed inline; no runtime dependency on the reference app) | `src/styles.css`, `src/app/ui/*` |
-| `branding-rename.yaml` | built new | `src/app/brand/brand.ts` |
-
-Deleted from the prior build: `content-source.ts`, routing (`app.routes.ts`,
-`provideRouter`), `persona-catalog.ts`, `navigation-routes` handling, the home
-README link-interception. None apply under the new spec.
+| `content-browser.yaml` | `scripts/build-manifest.mjs`, `src/app/core/content-tree.ts` (pure), `src/app/core/content-browser.ts` |
+| `view-state.yaml` | `src/app/state/view-state.ts` |
+| `navigation-routing.yaml` | `src/app/app.routes.ts`, `src/app/app.ts` (URL → state) |
+| `delivery.yaml` | `src/app/core/delivery.ts` |
+| `layout-shell.yaml` | `src/app/app.ts` |
+| `ui-edge-cases.yaml` | across `app.ts`, `nav-panel.ts`, `persona-topics.ts`, `schema-tree.ts`, `content-pane.ts`, `markdown.ts`, `view-state.ts` |
+| `style-visual-theme.yaml` | `src/styles.css`, `src/app/ui/*` (Catenator tokens + one SVG mark, inline) |
+| `branding-rename.yaml` | `src/app/brand/brand.ts` |
 
 ## Deviations / notes
 
-1. `docs/` was restructured by the spec author: personas now live under
-   `docs/content/<persona>/`, the standard under `docs/schema/<section>/`. The
-   manifest script scans exactly those two roots.
-2. `build:manifest` runs as a `pre` step of `start` / `build` / `test`, and
-   `src/assets/content/` is gitignored — `docs/` stays the single source.
-3. `docs/schema/9-examples/` contains `.yaml` files; the content view renders
-   non-`.md` files verbatim in a `<pre>` (`renderFile()` picks by extension).
+1. **`.md` / `.yaml` dropped from route URLs.** `navigation-routing.yaml`
+   micro.`url-mirrors-real-path` says the URL segment must match the real name
+   "order-prefix included". But `navigation-routing.yaml` micro.`direct-load-works`
+   requires a bookmarked URL to load directly, and the Angular dev-server (and
+   typical static hosts) 404 any path with a file extension before SPA fallback
+   can fire — verified: `/personas/engineers/refraction.md` → 404,
+   `/personas/engineers/refraction` → 200. Resolution: the URL keeps every folder
+   name **and the order prefix** (`/schema/3-views/3.1-interface`), dropping only
+   the trailing type extension. `content-tree.ts` `urlSegmentFor()` /
+   `resolveNode()` map a stemmed segment back to the real file. This favours the
+   higher-consequence rule (direct-load-works) over the literal wording of
+   url-mirrors-real-path; flagged here rather than resolved silently.
+2. **`docs/` was restructured by the spec author**: `docs/content/` → `docs/personas/`,
+   `docs/schemas/` → `docs/schema/`. The manifest scans exactly the two roots in
+   `build-config.yaml`'s `contentSource.roots`.
+3. `src/assets/content/` is gitignored (generated from `docs/`).
+4. `docs/schema/` is currently only one level deep, but the tree walk and render
+   are fully recursive (verified against the `{name,type,children}` shape in the
+   test) — a nested folder would render without any code change.
 
 ## mustNever / micro verification
 
@@ -59,78 +46,101 @@ README link-interception. None apply under the new spec.
 
 | Rule | How satisfied |
 |---|---|
-| mustNever: Generate or modify content | No write path. `deliver()` only `fetch`es a static asset and returns text. |
-| mustNever: Use URL-based routing (Angular Router, path params) | `main.ts` bootstraps with no `provideRouter`; `branding.test.mjs` asserts no file imports `@angular/router`; the URL stays `/` through the whole flow (verified in-browser). |
-| mustNever: Hardcode a persona / topic / filename anywhere | Every label comes from `manifest.json`, generated by `build-manifest.mjs` reading disk. `branding.test.mjs` asserts no folder-name literal (`tech-writers`, `founding-statement`, …) appears in `src/`. |
-| mustNever: Treat content/ and schema/ as needing different logic | `FolderBrowser.categories/files/fileUrl` take `root` as a parameter; no per-root branch. `<app-list-view>` is one component used for both category and file lists. |
-| contentScope: home → two options; category list; file list; content view | The four `view.state` states, rendered by `@switch (state.current())` in `app.ts`. |
-| excluded: URL routing / authoring / hardcoded lists | none present. |
+| mustNever: generate / author / edit content | no write path; `deliver()` only `fetch`es a static asset. |
+| mustNever: nav panel anywhere but fixed left, always visible | `app.ts` `.left-panel { position: fixed; left: 0; height: 100vh }`; content pane has `margin-left` equal to the panel width. |
+| mustNever: hardcode a persona/topic/filename/depth | every label comes from `manifest.json`; `branding.test.mjs` asserts no folder-name literal (`tech-writers`, `3-views`, …) in `src/`. |
+| mustNever: show persona topics AND the schema tree together | `nav-panel.ts` `@switch (state.mode())` renders exactly one. |
 
-### content-folder-browser.yaml
+### content-browser.yaml
 
 | Rule | How satisfied |
 |---|---|
-| mustNever: hardcode a persona/topic/filename | labels are manifest entries = on-disk names. Test `folder-browser: every category and file label is a real on-disk name`. |
-| mustNever: different logic for content/ vs schema/ | one `FolderBrowser`, one `<app-list-view>`, root passed as an argument. Test `no manifest entry duplicates logic per root — shape is identical`. |
-| mustNever: hardcode a source root path | `resolveContentPath()` joins onto `CONTENT_ROOT`; the two roots are the `ROOTS` array in the scan script only. |
-| micro.two-instances-same-mechanism | `chooseRoot('content/')` and `chooseRoot('schema/')` feed the same components. Verified: browsed both roots in one session. |
-| micro.folder-name-is-the-label | `FolderBrowser` returns raw names; `<app-list-view>` prints `{{ it }}` unchanged. Screenshot shows `tech-writers`, `governing-document.md` verbatim. |
-| micro.scan-at-build-or-load | scan is at build time (`build-manifest.mjs`); the app reads the JSON at load. |
+| mustNever: hardcode name/filename/depth | manifest-driven; `build-manifest.mjs` `walk()` recurses with the same file/folder check at every level. Test `every tree node is {name,type}, folders recurse`. |
+| mustNever: hardcode a root's navigationMode | `RootConfig.navigationMode` from the manifest; `nav-panel` switches the dropdown vs `<app-schema-tree>` on `mode`, and `mode` is set from the URL root, not a name check. |
+| mustNever: hardcode a source root path | `RootConfig.path` + `resolveUrl()`. |
+| mustNever: display an order prefix | `displayName()` strips `^\d+(?:\.\d+)*[-.\s]+`. Test + screenshot (`3.1-interface.md` shows as `interface.md`). |
+| micro.recursive-not-fixed-depth | `resolveNode()` / `walk()` check `type` per entry, no depth assumption. Test `resolveNode matches by stem, returns real path`. |
+| micro.strip-order-prefix-for-display | `displayName()`; full name kept for URL (`urlSegmentFor`) and sort. |
+| micro.numeric-sort-by-order-prefix | `orderSort()`; test `2 before 10, 3.1 before 3.2, unprefixed last`. |
+| micro.full-markdown-rendering | `markdown.ts` pipe-table parser → `<table>`. Test + verified in-browser on `schema/3-views/3.1-interface` (bordered HTML table). |
+| micro.scan-at-build-or-load | build time (`build-manifest.mjs`). |
 
 ### view-state.yaml
 
 | Rule | How satisfied |
 |---|---|
-| mustNever: Angular Router / path params / URL navigation | none imported; `view-state.ts` is plain signals. |
-| mustNever: markdown link parsing or interception | there is none — every transition is a `(click)` bound to a `ViewState` method. |
-| states: home / categoryList / fileList / content | the `ViewName` union; `home` is the initial value. |
-| micro.single-state-variable | `current` + `activeRoot` / `selectedCategory` / `selectedFile`, all `.set()` from click handlers. |
-| micro.back-navigation-is-explicit-controls | `goHome` / `backToCategories` / `backToFiles`, wired to breadcrumb buttons and the rail logo. No `popstate` listener. Verified: crumb "engineers" returned to the file list, "Home" to home. |
+| mustNever: persona topics + schema tree at once | `mode` is one value; panel lower section renders on `mode` alone. |
+| mustNever: stale active state after switching | `applyRoute()` fully rebuilds `mode`/`selectedPersona`/`selectedSegments` every navigation. Verified: Schema-docs → dropdown `value===''`; persona → Schema-docs not `.active`. |
+| mustNever: open file/folder unmarked | `isActivePath()` + `isAncestorOfOpen()`; verified `.row.file.active` and `.row.folder.ancestor` both present. |
+| micro.mutual-exclusivity | as above. |
+| micro.bidirectional-reset | verified both directions in-browser. |
+| micro.active-state-highlighting | dropdown shows the persona; open file filled; ancestor folders accented + auto-expanded (`autoExpand`). |
 
-### delivery-request-response.yaml
-
-| Rule | How satisfied |
-|---|---|
-| mustNever: return content other than the current selection | the URL is `browser.fileUrl(root, category, file)` from the three args only. Test `delivery: builds the URL only from the three passed-in values`. |
-| mustNever: read/write a URL | inputs are `ViewState` signal values; no route params. |
-| contractShape input/output | `deliver(browser, activeRoot, selectedCategory, selectedFile) -> { ok, text, file } | { ok:false, message }`. |
-| micro.reads-from-state-not-url | `ViewState.chooseFile()` passes its own signal values straight in. |
-
-### style-visual-theme.yaml
+### navigation-routing.yaml
 
 | Rule | How satisfied |
 |---|---|
-| mustNever: change content-loading / folder-browsing / delivery in the styling pass | styling is `styles.css` + component `styles:` only. |
-| mustNever: live dependency on the reference app | all tokens + the one SVG mark are inline in `src/`. |
-| mustNever: new icon library / dependency without checking the reference | none added; markdown is the hand-rolled `markdown.ts`. |
-| micro.report-before-applying | reference approach: global stylesheet + CSS custom properties, no framework, custom SVG icons, no markdown library. |
-| micro.apply-to-reader-ui-elements | the two home options, the category list, the file list, the content pane — all use the shared tokens; selected list item = filled accent. |
-| micro.standalone-styling | committed in `src/`; nothing loads from the reference at runtime. |
+| mustNever: intercept markdown `<a>` tags for navigation | `markdown.ts` renders links as plain `<a>`; nothing listens for clicks on rendered content. Routes are set only by `nav-panel` / tree / topic-list controls. |
+| mustNever: route structure not mirroring the folder path | routes are the real folder path (order prefixes kept); only the file extension is dropped — see Deviation 1. |
+| routes /, /personas/:folder, /personas/:folder/:file, /schema/:path* | one catch-all route + `applyRoute()` parsing; arbitrary schema depth. |
+| micro.url-mirrors-real-path | order prefixes in the URL; folders verbatim. |
+| micro.direct-load-works | verified: direct load of `/schema/3-views/3.1-interface` → mode schema, tree expanded to the active file, content + page title correct. |
+| micro.not-found-on-invalid-path | `/schema/nope/missing` → "Not found" pane (checked live against the manifest). |
 
-### branding-rename.yaml
+### delivery.yaml
 
 | Rule | How satisfied |
 |---|---|
-| mustNever: hardcode a product name | `BRAND.productName` is the sole literal (`brand/brand.ts`); `index.html` title is the tagline. Test `branding: product name is a literal in exactly one file`. |
-| mustNever: leave a prior name in the UI | `PRIOR_NAMES` scanned across `src/**/*.{ts,html,css}`; none found. |
-| micro.single-source-of-truth | rail tooltip, top-bar line, home `<h1>`, page `<title>` all read `BRAND`. |
+| mustNever: return content other than the route's | fetch URL is `resolveUrl(rootId, realPath)` from the resolved node only. |
+| mustNever: blank result for a missing file without an explicit not-found | missing node, non-file node, or fetch failure → `{type:'not-found', path}`. Tests cover all three. |
+| micro.explicit-not-found | `ContentPane` renders the not-found state with the offending path. |
+
+### layout-shell.yaml
+
+| Rule | How satisfied |
+|---|---|
+| mustNever: panel scrolls with page / moves / disappears above mobile bp | `position: fixed`; `.nav-inner` has its own `overflow-y`. |
+| mustNever: panel width changes with content | fixed `width: 264px`. |
+| micro.left-panel-is-fixed / content-pane-scrolls-independently | `.content-pane { margin-left: 264px; overflow-y: auto }`. |
+| micro.mobile-handoff | one `@media (max-width: 768px)` block; the panel translates off-canvas behind `.nav-toggle`. |
+
+### ui-edge-cases.yaml
+
+| Rule | How satisfied |
+|---|---|
+| mustNever: blank/frozen pane while fetching | `ContentPane` shows `Loading…` (`role="status"`) on `state.loading()`. |
+| mustNever: static tab title | `Title.setTitle(pageTitle(...))` per route; verified `refraction.md — engineers — Catenator Reader`. |
+| mustNever: div-based nav controls | `<select>`, `<ul role="tree">` with `aria-expanded`, `<button>` rows. |
+| mustNever: navigate away on an external markdown link | `markdown.ts` adds `target="_blank" rel="noopener"` to `http(s)` links; internal links untouched. Test. |
+| micro.loading-state / dynamic-page-title / empty-folder-message | "No topics yet" in `persona-topics` / `schema-tree`. |
+| micro.semantic-accessible-controls | as above. |
+| micro.mobile-collapsible-nav (768px, one value) | `branding.test.mjs` asserts `768` appears in exactly one file (`app.ts`). |
+| micro.external-links-new-tab | as above. |
+
+### style-visual-theme.yaml / branding-rename.yaml
+
+| Rule | How satisfied |
+|---|---|
+| style: no runtime dependency on the reference app | tokens + mark inline in `src/`. |
+| style: no new icon/markdown library | hand-rolled `markdown.ts`. |
+| branding: product name a literal in one file | `brand.ts` only; test. |
+| branding: no retired name in the built app | `PRIOR_NAMES` scan; none. |
 
 ## Favicon (apps/shared/BUILD_INSTRUCTIONS.md standing rule)
 
-`apps/shared/assets/favicon/*` copied to `src/assets/favicon/`; the four link
-tags are in `src/index.html`; `angular.json` serves `src/assets`.
+`apps/shared/assets/favicon/*` → `src/assets/favicon/`; the four link tags in
+`src/index.html`; `angular.json` serves `src/assets`.
 
 ## Verification run
 
-- `npm test` — 15 / 15 pass (Node 22).
-- `npm run build` (production) — clean, initial bundle 147 kB (no router).
-- In-browser, full flow driven by clicks:
-  - home → "Browse by persona" → categoryList (6 personas, verbatim names),
-    URL still `/`
-  - → "engineers" → fileList (5 files) → "governing-document.md" → content
-    ("Governing document" rendered), breadcrumbs `Home / content/ / engineers /
-    governing-document.md`
-  - crumb "engineers" → back to fileList; "Home" → home
-  - home → "View schema docs" → "9-examples" → "9.1-minimal-valid-spec.yaml" →
-    rendered verbatim in `<pre class="plain">`
-  - Favicon shows in the tab.
+- `npm test` — 18 / 18 pass (Node 22).
+- `npm run build` (production) — clean, initial bundle 245 kB.
+- In-browser, driven by clicks + direct loads (CDP):
+  - `/` → README, Home/dropdown/Schema-docs present, lower section empty.
+  - dropdown → `engineers` → `/personas/engineers`, topic list, Schema-docs not active.
+  - topic → `/personas/engineers/refraction`, content, title updates, topic marked.
+  - Schema docs → dropdown resets to unselected, tree replaces topics.
+  - expand a folder, open a file → GFM table renders, file + ancestor folder marked.
+  - direct load `/schema/3-views/3.1-interface` → identical state (mode, tree, content, title).
+  - `/schema/nope/missing` → "Not found" pane.
+  - favicon shows in the tab.

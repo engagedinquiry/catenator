@@ -1,7 +1,7 @@
 /**
  * Monochrome SVG icon assets, committed into this app (style.visual-theme
- * .standalone-styling: no runtime dependency on any reference application, no
- * icon library). Just the Catenator bracketed-asterisk mark.
+ * .standalone-styling: no runtime dependency on any reference app, no icon
+ * library). Just the Catenator bracketed-asterisk mark.
  */
 export const ICON_REGISTRY = {
   'icon-catenator-logo':

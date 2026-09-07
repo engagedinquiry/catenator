@@ -4,10 +4,15 @@ specPath: "apps/reader-app/specs/"
 outputPath: "apps/reader-app/output/"
 
 contentSource:
-  rootDir: "docs"   # relative to repo root. content.folder-browser's
-                     # two roots ("content/" and "schema/") are
-                     # relative to THIS value.
+  rootDir: "docs"
   mode: "pre-authored"
+  roots:
+    - id: personas
+      path: "personas/"
+      navigationMode: "dropdown"   # flat folder list, shown as a dropdown
+    - id: schema
+      path: "schema/"
+      navigationMode: "tree"       # expandable list, arbitrary depth
 
 techStack:
   frontend: "Angular"

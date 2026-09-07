@@ -1,38 +1,45 @@
 systemName: "Catenator Reader"
 domain: "reader-controlled delivery"
 intent: >
-  A home page offering two entry points — browse by persona, or view
-  the schema docs — both served by one generic folder-browsing
-  mechanism. No persona names, topic names, or filenames are hardcoded
-  anywhere. No URL routing.
+  A read-only site for browsing pre-authored content under docs/ —
+  persona-specific documentation (personas/, via a dropdown) and the
+  Catenator standard itself (schema/, via an expandable tree). One
+  persistent left nav panel with Home, a "Reading as" dropdown, and a
+  "Schema docs" button, always visible together, mutually exclusive
+  below. Real URLs mirroring the actual folder paths. No routing via
+  link interception. No content generation.
 mustNever:
-  - "Generate or modify content — this app only reads and delivers
-     what already exists"
-  - "Use URL-based routing (Angular Router, path params) — use a
-     single in-app view-state variable instead"
-  - "Hardcode a persona name, topic name, or filename anywhere in the
-     spec — everything shown is read from actual folder/file names"
-  - "Treat browsing docs/content/ and docs/schema/ as needing
-     different logic — both use the same folder-browsing component"
+  - "Generate, author, or edit content — this app only reads and
+     delivers what already exists under docs/"
+  - "Place the nav panel anywhere but a fixed left position, always
+     visible"
+  - "Hardcode a persona name, topic name, filename, or assumed folder
+     depth anywhere in the spec — everything is derived live from
+     docs/personas/ and docs/schema/"
+  - "Show a persona's topics and the schema tree at the same time"
 contentScope:
   inScope:
-    - "Home: two options — browse by persona (docs/content/), or view
-       schema docs (docs/schema/)"
-    - "Category list: subfolders of whichever root was chosen"
-    - "File list: files inside the selected subfolder"
-    - "Content view: the selected file's rendered content"
+    - "Home: docs/README.md content, plus Home/dropdown/Schema docs controls"
+    - "Personas: dropdown of docs/personas/ subfolders, each showing a flat topic list"
+    - "Schema: expandable tree of docs/schema/, arbitrary depth"
+    - "Real URL routing mirroring folder paths"
+    - "Loading states, not-found handling, empty-folder messaging,
+       accessible controls, mobile-collapsible nav, safe external links"
   excluded:
-    - "URL routing of any kind"
     - "Authoring, editing, or generating content"
-    - "Any hardcoded list of personas, topics, or filenames"
+    - "Routing driven by parsing markdown links"
+    - "Any hardcoded list of personas, topics, filenames, or depth"
 personas:
   - id: reader
     accessScope: read-only
-    doing: "Picks a root, then a category, then a file — all via simple in-app state"
+    doing: "Browses via Home, the persona dropdown, or the schema tree; reads content; always sees where they are"
 
 components:
-  - ref: components/content-folder-browser.yaml
+  - ref: components/layout-shell.yaml
+  - ref: components/content-browser.yaml
   - ref: components/view-state.yaml
-  - ref: components/delivery-request-response.yaml
+  - ref: components/navigation-routing.yaml
+  - ref: components/delivery.yaml
+  - ref: components/ui-edge-cases.yaml
   - ref: components/style-visual-theme.yaml
   - ref: components/branding-rename.yaml

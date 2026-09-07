@@ -18,18 +18,8 @@ branding.rename:
     configSource: "build-config.yaml → branding.productName, branding.tagline"
   micro:
     - id: scan-for-prior-names
-      rule: >
-        Before applying the configured name, search the codebase for
-        any hardcoded prior product name (check build-config.yaml's
-        branding.priorNames list) in UI text, page titles, and
-        component/file names. Report every occurrence found before
-        changing anything.
+      rule: "Search the codebase for any hardcoded prior product name (per build-config.yaml's branding.priorNames) before renaming; report every occurrence found."
     - id: single-source-of-truth
-      rule: >
-        The product name must be read from build-config.yaml at
-        runtime or build time, not duplicated as a literal string in
-        more than one place in the code.
+      rule: "The product name is read from build-config.yaml, never duplicated as a literal string in more than one place."
     - id: report-changes
-      rule: >
-        Report every file changed and what was replaced, so a rename
-        can be verified rather than assumed complete.
+      rule: "Report every file changed and what was replaced."

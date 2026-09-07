@@ -1,13 +1,14 @@
 /**
- * Minimal, dependency-free markdown -> HTML renderer.
+ * Minimal, dependency-free Markdown -> HTML renderer with the GFM constructs the
+ * governed docs use: ATX headings, paragraphs, lists, fenced code, blockquotes,
+ * rules, inline code/bold/italic/links, and GFM pipe tables (content.browser
+ * micro.full-markdown-rendering). All prose text is HTML-escaped first.
  *
- * style.visual-theme.mustNever forbids adding a dependency without first
- * checking the reference app (syntaxia-studio ships no markdown library) — so
- * this is a small hand-rolled renderer: ATX headings, paragraphs, lists, fenced
- * code, blockquotes, rules, inline code / bold / italic / links. All text is
- * HTML-escaped first; raw block-level HTML lines are dropped.
+ * ui.edge-cases.external-links-new-tab: http(s) links get target="_blank"
+ * rel="noopener". Internal relative links are left as-is (navigation.routing
+ * forbids intercepting them; a hard click just reloads the SPA).
  *
- * Non-markdown files (.yaml, .txt, …) are shown verbatim via renderPlain().
+ * Non-markdown files render verbatim via renderPlain().
  */
 
 function esc(s: string): string {
@@ -40,7 +41,6 @@ function stripFrontmatter(md: string): string {
   return m ? md.slice(m[0].length) : md;
 }
 
-/** Verbatim rendering for non-markdown files. */
 export function renderPlain(text: string): string {
   return `<pre class="code plain"><code>${esc(text)}</code></pre>`;
 }
@@ -49,11 +49,13 @@ export function renderMarkdown(md: string): string {
   const lines = stripFrontmatter(md.replace(/^﻿/, '').replace(/\r\n/g, '\n')).split('\n');
   const html: string[] = [];
   let i = 0;
-
   const listStack: Array<'ul' | 'ol'> = [];
   const closeLists = () => {
     while (listStack.length) html.push(`</${listStack.pop()}>`);
   };
+
+  const splitRow = (r: string) =>
+    r.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
 
   while (i < lines.length) {
     const line = lines[i];
@@ -66,9 +68,7 @@ export function renderMarkdown(md: string): string {
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
       i++;
-      html.push(
-        `<pre class="code"${lang ? ` data-lang="${esc(lang)}"` : ''}><code>${esc(buf.join('\n'))}</code></pre>`
-      );
+      html.push(`<pre class="code"${lang ? ` data-lang="${esc(lang)}"` : ''}><code>${esc(buf.join('\n'))}</code></pre>`);
       continue;
     }
 
@@ -91,27 +91,21 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
-    // GFM pipe table: a header row with "|", then a "| --- | :--: |" delimiter row.
+    // GFM pipe table
     if (
       line.includes('|') &&
       i + 1 < lines.length &&
       /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)*\|?\s*$/.test(lines[i + 1])
     ) {
       closeLists();
-      const splitRow = (r: string) =>
-        r
-          .trim()
-          .replace(/^\||\|$/g, '')
-          .split('|')
-          .map((c) => c.trim());
       const headers = splitRow(line);
       const aligns = splitRow(lines[i + 1]).map((c) =>
         /^:-+:$/.test(c) ? 'center' : /-+:$/.test(c) ? 'right' : /^:-+/.test(c) ? 'left' : ''
       );
       i += 2;
-      const bodyRows: string[][] = [];
+      const rows: string[][] = [];
       while (i < lines.length && lines[i].includes('|') && !/^\s*$/.test(lines[i])) {
-        bodyRows.push(splitRow(lines[i]));
+        rows.push(splitRow(lines[i]));
         i++;
       }
       const cell = (tag: string, text: string, idx: number) => {
@@ -119,7 +113,7 @@ export function renderMarkdown(md: string): string {
         return `<${tag}${a}>${inline(text)}</${tag}>`;
       };
       const thead = `<thead><tr>${headers.map((c, x) => cell('th', c, x)).join('')}</tr></thead>`;
-      const tbody = `<tbody>${bodyRows
+      const tbody = `<tbody>${rows
         .map((r) => `<tr>${headers.map((_h, x) => cell('td', r[x] ?? '', x)).join('')}</tr>`)
         .join('')}</tbody>`;
       html.push(`<table>${thead}${tbody}</table>`);
@@ -173,7 +167,6 @@ export function renderMarkdown(md: string): string {
   return html.join('\n');
 }
 
-/** Pick the renderer by file extension. */
 export function renderFile(name: string, text: string): string {
   return /\.(md|markdown)$/i.test(name) ? renderMarkdown(text) : renderPlain(text);
 }

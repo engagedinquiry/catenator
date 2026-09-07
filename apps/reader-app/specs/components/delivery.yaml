@@ -1,0 +1,22 @@
+delivery.request-response:
+  macro:
+    systemName: "delivery.request-response"
+    domain: "reader-controlled delivery"
+    intent: "Return a file's content for the current route, or a not-found result if it doesn't exist."
+    mustNever:
+      - "Return content other than what the current route specifies"
+      - "Return a blank/empty result for a missing file without an
+         explicit not-found error type"
+  meso:
+    personas:
+      - id: reader
+        doing: "Views whatever the current route resolves to"
+    contractShape:
+      input: [rootId, path]
+      output: "markdownContent, OR { type: 'not-found', path }"
+  micro:
+    - id: explicit-not-found
+      rule: >
+        If content.browser cannot find a file at the requested path,
+        delivery returns a structured not-found result — the UI shows
+        this as a clear message, never a silent blank pane.

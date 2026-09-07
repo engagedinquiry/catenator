@@ -2,11 +2,17 @@ vocabulary:
   - term: "reader-controlled delivery"
     definition: >
       A delivery mode where the reader chooses what to view, on
-      demand, rather than the system deciding for them based on a
-      tracked profile. The reader's clicks ARE the selection —
-      nothing is inferred.
+      demand, rather than the system deciding for them. The reader's
+      clicks and dropdown selections ARE the navigation — nothing is
+      inferred or generated.
   - term: "governed source content"
     definition: >
       Content that already exists as an authored, structured
-      document — not generated on the fly by this app. This app
-      browses and delivers it; it does not author or refract anything.
+      document under docs/. This app browses and delivers it; it does
+      not author, edit, or generate anything.
+  - term: "order-name"
+    definition: >
+      A folder or file name prefixed with a sortable order (e.g.
+      "2-descriptors", "3.1-interface.md"). The prefix is used only
+      for numeric sorting; it is stripped before the name is
+      displayed to the reader.

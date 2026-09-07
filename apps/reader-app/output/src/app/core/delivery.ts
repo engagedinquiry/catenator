@@ -1,38 +1,49 @@
-import type { FolderBrowser } from './folder-browser';
+import type { ContentBrowser } from './content-browser';
 
 /**
- * delivery.request-response — return the file's content for the currently
- * selected root + category + file.
+ * delivery.request-response — return a file's content for the current route, or
+ * an explicit not-found result.
  *
- * contractShape: input [activeRoot, selectedCategory, selectedFile] -> markdownContent
+ * contractShape: input [rootId, path] -> markdownContent | { type: 'not-found', path }
  *
  * mustNever:
- *  - "Return content other than what view.state currently has selected" -> the
- *     URL is built only from the three passed-in values, via FolderBrowser.
- *  - "Read from or write to a URL" (as navigation) -> no route params; the
- *     inputs come straight from view.state (micro.reads-from-state-not-url).
+ *  - return content other than what the route specifies -> the fetch URL comes
+ *     only from browser.resolveUrl() for the resolved real path.
+ *  - return a blank result for a missing file without an explicit not-found ->
+ *     a missing node, a non-file node, or a fetch failure all yield not-found.
  */
 export type DeliveryResult =
-  | { ok: true; text: string; file: string }
-  | { ok: false; message: string };
+  | { type: 'content'; text: string; name: string }
+  | { type: 'not-found'; path: string };
 
 export async function deliver(
-  browser: FolderBrowser,
-  root: string,
-  category: string,
-  file: string,
+  browser: ContentBrowser,
+  rootId: string,
+  urlSegments: string[],
   fetchText: (url: string) => Promise<string> = defaultFetchText
 ): Promise<DeliveryResult> {
-  // root + category are empty only for the home README (the one-file case);
-  // any other view requires all three.
-  if (!file || ((root || category) && !(root && category))) {
-    return { ok: false, message: 'Nothing selected.' };
+  const path = [rootId, ...urlSegments].join('/');
+  const found = browser.resolve(rootId, urlSegments);
+  if (!found || found.node.type !== 'file') {
+    return { type: 'not-found', path };
   }
   try {
-    const text = await fetchText(browser.fileUrl(root, category, file));
-    return { ok: true, text, file };
+    const text = await fetchText(browser.resolveUrl(rootId, found.realPath));
+    return { type: 'content', text, name: found.node.name };
   } catch {
-    return { ok: false, message: `Could not load ${category}/${file}.` };
+    return { type: 'not-found', path };
+  }
+}
+
+/** The home README — the one-file case, no root. */
+export async function deliverHome(
+  browser: ContentBrowser,
+  fetchText: (url: string) => Promise<string> = defaultFetchText
+): Promise<DeliveryResult> {
+  try {
+    return { type: 'content', text: await fetchText(browser.homeUrl()), name: 'README.md' };
+  } catch {
+    return { type: 'not-found', path: 'README.md' };
   }
 }
 

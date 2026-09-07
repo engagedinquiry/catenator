@@ -3,43 +3,60 @@ view.state:
     systemName: "view.state"
     domain: "reader-controlled delivery"
     intent: >
-      Switch between four states using a single in-app state variable
-      — no Angular Router, no URL paths.
+      The left nav panel always shows a Home button, the "Reading as"
+      dropdown, and the "Schema docs" button together. Selecting a
+      persona shows that persona's topics and resets/hides the schema
+      button's active state. Clicking Schema docs does the reverse.
+      The currently open file (and its containing folder, if any) is
+      always visibly marked as selected.
     mustNever:
-      - "Use Angular Router, path parameters, or any URL-based
-         navigation"
-      - "Require any markdown link parsing or interception — all
-         navigation happens through UI controls wired directly to the
-         state variable"
+      - "Show both a persona's topic list AND the schema tree at the
+         same time — selecting one clears the other"
+      - "Leave the dropdown or Schema docs button showing a stale
+         active/selected state after the other one is activated"
+      - "Leave the currently open file or folder unmarked in the nav
+         panel — active-state indication is required at all times
+         once something is open"
   meso:
     personas:
       - id: reader
-        doing: "Clicks a UI control; the app's current state updates immediately, in memory"
-    states:
-      - id: home
-        default: true
-        shows: >
-          Two options: "Browse by persona" (sets activeRoot to
-          "content/") and "View schema docs" (sets activeRoot to
-          "schema/"). Selecting either moves to categoryList.
-      - id: categoryList
-        entered: "After a root is chosen from home"
-        shows: "The subfolders of activeRoot, via content.folder-browser"
-      - id: fileList
-        entered: "After a category (subfolder) is selected"
-        shows: "The files inside the selected subfolder"
-      - id: content
-        entered: "After a file is selected"
-        shows: "That file's rendered content"
+        doing: "Uses Home, the dropdown, or Schema docs; the panel below and content pane update; current selection stays visibly marked"
+    navPanelState:
+      mode: "'none' | 'persona' | 'schema'"
+      selectedPersonaId: "set when mode is 'persona'"
+      selectedPath: "the currently open file's full path, in either mode"
+    behavior:
+      - "On load (Home): mode is 'none'. Dropdown unselected, Schema
+         docs button unselected. Content pane shows docs/README.md."
+      - "Selecting a persona: mode becomes 'persona'. Schema docs
+         button's active state clears and its tree (if shown) hides.
+         That persona's flat topic list appears below the dropdown."
+      - "Clicking a topic: content pane shows that file. The topic is
+         marked selected in the nav panel."
+      - "Clicking Schema docs: mode becomes 'schema'. Dropdown resets
+         to unselected. Persona topic list is replaced by the schema
+         tree. Content pane clears until a schema file is clicked."
+      - "Clicking a schema file (at any tree depth): content pane
+         shows it. That file, and its containing folder(s) in the
+         tree, are marked selected/expanded."
+      - "Clicking Home: mode resets to 'none', dropdown and Schema
+         docs button both reset to unselected, content pane returns
+         to docs/README.md."
   micro:
-    - id: single-state-variable
+    - id: mutual-exclusivity
       rule: >
-        One variable (e.g. currentState) holds which of the four
-        states is active, plus activeRoot, selectedCategory, and
-        selectedFile as it drills down. All direct assignments from
-        click handlers.
-    - id: back-navigation-is-explicit-controls
+        mode is a single value: 'none', 'persona', or 'schema'. The
+        nav panel's lower section renders based on mode alone.
+    - id: bidirectional-reset
       rule: >
-        No browser back-button support required. Returning to a prior
-        state happens only via explicit UI controls (a "Home" button,
-        a "back to categories" link, etc.).
+        Activating the dropdown resets Schema docs' active state and
+        hides its tree. Activating Schema docs resets the dropdown to
+        unselected and hides the persona topic list. This must work in
+        both directions, not just one.
+    - id: active-state-highlighting
+      rule: >
+        The currently selected persona (in the dropdown), the
+        currently open topic/file (in the list or tree), and any
+        containing folder in the schema tree, are all visibly
+        highlighted/marked as active at all times while something is
+        open. This is baseline expected navigation behavior.

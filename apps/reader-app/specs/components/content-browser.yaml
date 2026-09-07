@@ -1,0 +1,65 @@
+content.browser:
+  macro:
+    systemName: "content.browser"
+    domain: "content governance"
+    intent: >
+      One recursive mechanism for walking pre-authored folders of
+      arbitrary depth under docs/. For each root (personas/, schema/),
+      how it's presented in the nav panel (dropdown vs. tree) is a
+      config value from build-config.yaml's contentSource.roots — not
+      hardcoded logic tied to a root's name. The underlying walk
+      (file vs. folder, at any depth) is identical for every root.
+    mustNever:
+      - "Hardcode a persona name, topic name, filename, or an assumed
+         folder depth anywhere in this component"
+      - "Hardcode which navigationMode (dropdown/tree) a root uses —
+         always read it from build-config.yaml's roots list"
+      - "Hardcode a source root path — every root's path is read from
+         build-config.yaml, joined with contentSource.rootDir"
+      - "Display a folder or file's order prefix (e.g. '2-', '3.1-')
+         as part of its shown label — strip it, use it only for sort"
+  meso:
+    personas:
+      - id: reader
+        doing: "Drills into folders (however deep) until reaching a file, or picks a persona from a dropdown"
+    behavior:
+      - "Given a root's config (path + navigationMode), list its
+         immediate entries."
+      - "For each entry: if it's a file, it's clickable — selecting
+         it returns its content. If it's a folder, it's drillable —
+         recurse into it the same way, regardless of depth."
+      - "For navigationMode 'dropdown': the root's immediate
+         subfolders become dropdown options. Selecting one shows that
+         subfolder's files as a flat list (personas/ folders are not
+         expected to nest further, but if they did, the same
+         recursive rule still applies)."
+      - "For navigationMode 'tree': the root's structure is rendered
+         as an expandable tree, arbitrary depth, matching whatever the
+         filesystem actually contains."
+  micro:
+    - id: recursive-not-fixed-depth
+      rule: >
+        Never assume a folder's children are all files or all
+        folders, and never assume a fixed depth. Check each entry's
+        actual type and recurse accordingly, at every level.
+    - id: strip-order-prefix-for-display
+      rule: >
+        A name like "2-descriptors" or "3.1-interface.md" displays as
+        "descriptors" or "interface.md" — the leading order token
+        (digits, optional sub-number, trailing hyphen) is removed for
+        display only. The full original name is retained for sorting.
+    - id: numeric-sort-by-order-prefix
+      rule: >
+        Entries are sorted by their order prefix numerically (2 before
+        10, 3.1 before 3.2), not alphabetically as plain strings. An
+        entry with no order prefix sorts after all entries that have
+        one, alphabetically among themselves.
+    - id: full-markdown-rendering
+      rule: >
+        File content renders with GFM support, including tables (pipe
+        syntax) as real HTML tables, not literal pipe text.
+    - id: scan-at-build-or-load
+      rule: >
+        Perform the scan once, at build time or load time — either is
+        acceptable. Nothing about the result requires a hardcoded list
+        anywhere in this spec.

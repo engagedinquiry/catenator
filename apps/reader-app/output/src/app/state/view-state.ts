@@ -1,110 +1,160 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { deliver, DeliveryResult } from '../core/delivery';
-import { FolderBrowser } from '../core/folder-browser';
+import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
+import { ContentBrowser, displayName, urlSegmentFor } from '../core/content-browser';
+import type { TreeNode } from '../core/content-browser';
+import { deliver, deliverHome, DeliveryResult } from '../core/delivery';
+import { pageTitle } from '../brand/brand';
 
-export type ViewName = 'home' | 'categoryList' | 'fileList' | 'content';
+export type NavMode = 'none' | 'persona' | 'schema';
+
+const PERSONA_ROOT = 'personas';
+const SCHEMA_ROOT = 'schema';
 
 /**
- * view.state — the whole app navigation, one in-memory state machine. No Angular
- * Router, no URL, no markdown-link parsing (view.state mustNever). Every
- * transition is a direct assignment from a click handler.
+ * view.state — the nav-panel state machine, driven entirely by the URL
+ * (navigation.routing). `applyRoute()` is the single entry point: in-app
+ * controls navigate the router, and a direct/bookmarked load hits the same
+ * `applyRoute()` — so both paths produce identical state (direct-load-works).
  *
- * micro.single-state-variable: `current` holds the active view; `activeRoot`,
- * `selectedCategory`, `selectedFile` accumulate as the reader drills down.
- * micro.back-navigation-is-explicit-controls: goHome / backToCategories /
- * backToFiles / switchCategory (the dropdown) are the only ways back.
+ * mustNever:
+ *  - show persona topics AND the schema tree together -> `mode` is one value;
+ *     the panel's lower section renders on `mode` alone (mutual-exclusivity).
+ *  - leave a stale active state after switching -> every applyRoute() fully
+ *     rebuilds mode / persona / path (bidirectional-reset).
+ *  - leave the open file/folder unmarked -> `selectedSegments` + `isActive*`.
+ *
+ * `selectedSegments` holds the REAL on-disk path; URLs drop only the trailing
+ * file extension.
  */
 @Injectable({ providedIn: 'root' })
 export class ViewState {
-  readonly browser = inject(FolderBrowser);
+  readonly browser = inject(ContentBrowser);
+  private router = inject(Router);
+  private title = inject(Title);
 
-  readonly current = signal<ViewName>('home');
-  readonly activeRoot = signal<string | null>(null);
-  readonly selectedCategory = signal<string | null>(null);
-  readonly selectedFile = signal<string | null>(null);
+  readonly mode = signal<NavMode>('none');
+  readonly selectedPersona = signal<string | null>(null);
+  readonly selectedSegments = signal<string[]>([]);
 
   readonly loading = signal(false);
   readonly result = signal<DeliveryResult | null>(null);
+  readonly expanded = signal<Set<string>>(new Set());
 
-  /** home state: docs/README.md, rendered via the same folder-browser mechanism. */
-  readonly homeResult = signal<DeliveryResult | null>(null);
+  readonly personaOptions = computed(() => this.browser.root(PERSONA_ROOT)?.tree.children ?? []);
 
-  readonly categories = computed(() => {
-    const r = this.activeRoot();
-    return r ? this.browser.categories(r) : [];
-  });
-  readonly files = computed(() => {
-    const r = this.activeRoot();
-    const c = this.selectedCategory();
-    return r && c ? this.browser.files(r, c) : [];
-  });
+  async applyRoute(url: string): Promise<void> {
+    const clean = url.split('?')[0].split('#')[0];
+    const segs = clean.split('/').map(decodeURIComponent).filter(Boolean);
 
-  /** view.state fileList/content: sibling categories under the current root. */
-  readonly siblingCategories = this.categories;
+    if (segs.length === 0) {
+      this.set('none', null, []);
+      await this.loadHome();
+      this.title.setTitle(pageTitle([]));
+      return;
+    }
 
-  async loadHome(): Promise<void> {
-    if (this.homeResult()) return;
-    const res = await deliver(this.browser, '', '', this.browser.homeFile());
-    this.homeResult.set(res);
+    const [root, ...rest] = segs;
+
+    if (root === PERSONA_ROOT) {
+      const found = rest.length ? this.browser.resolve(PERSONA_ROOT, rest) : null;
+      const real = found?.realPath ?? rest;
+      this.set('persona', rest[0] ?? null, real);
+      if (rest.length >= 2) {
+        if (found?.node.type === 'file') await this.loadFile(PERSONA_ROOT, rest);
+        else this.notFound(clean);
+      } else {
+        this.result.set(null);
+        this.loading.set(false);
+      }
+      this.title.setTitle(pageTitle(real.map(displayName).reverse()));
+      return;
+    }
+
+    if (root === SCHEMA_ROOT) {
+      const found = rest.length ? this.browser.resolve(SCHEMA_ROOT, rest) : { node: null, realPath: [] as string[] };
+      if (rest.length && !found) {
+        this.set('schema', null, rest);
+        this.notFound(clean);
+        this.title.setTitle(pageTitle(['Not found']));
+        return;
+      }
+      const real = found?.realPath ?? [];
+      this.set('schema', null, real);
+      this.autoExpand(real);
+      if (found?.node?.type === 'file') await this.loadFile(SCHEMA_ROOT, rest);
+      else {
+        this.result.set(null);
+        this.loading.set(false);
+      }
+      this.title.setTitle(pageTitle(real.map(displayName).reverse()));
+      return;
+    }
+
+    this.set('none', null, []);
+    this.notFound(clean);
+    this.title.setTitle(pageTitle(['Not found']));
   }
 
-  /** home: "Browse by persona" -> "content/", "View schema docs" -> "schema/". */
-  chooseRoot(root: string): void {
-    this.activeRoot.set(root);
-    this.selectedCategory.set(null);
-    this.selectedFile.set(null);
-    this.result.set(null);
-    this.current.set('categoryList');
+  private set(mode: NavMode, persona: string | null, real: string[]): void {
+    this.mode.set(mode);
+    this.selectedPersona.set(persona);
+    this.selectedSegments.set(real);
   }
-
-  chooseCategory(category: string): void {
-    this.selectedCategory.set(category);
-    this.selectedFile.set(null);
-    this.result.set(null);
-    this.current.set('fileList');
-  }
-
-  /**
-   * view.state.category-switcher-dropdown: from fileList or content, jump
-   * straight to another sibling category's fileList — not back to Home.
-   */
-  switchCategory(category: string): void {
-    if (!category || category === this.selectedCategory()) return;
-    this.chooseCategory(category);
-  }
-
-  async chooseFile(file: string): Promise<void> {
-    this.selectedFile.set(file);
-    this.current.set('content');
-    this.loading.set(true);
-    const res = await deliver(
-      this.browser,
-      this.activeRoot() ?? '',
-      this.selectedCategory() ?? '',
-      file
-    );
-    this.result.set(res);
+  private notFound(path: string): void {
+    this.result.set({ type: 'not-found', path: path.replace(/^\//, '') });
     this.loading.set(false);
+  }
+  private async loadHome(): Promise<void> {
+    this.loading.set(true);
+    this.result.set(await deliverHome(this.browser));
+    this.loading.set(false);
+  }
+  private async loadFile(rootId: string, urlSegments: string[]): Promise<void> {
+    this.loading.set(true);
+    this.result.set(await deliver(this.browser, rootId, urlSegments));
+    this.loading.set(false);
+  }
+  private autoExpand(realSegments: string[]): void {
+    const next = new Set(this.expanded());
+    for (let i = 1; i < realSegments.length; i++) next.add(realSegments.slice(0, i).join('/'));
+    this.expanded.set(next);
+  }
+
+  // ---- control actions: each navigates; applyRoute() rebuilds the state ----
+
+  private navTo(rootId: string, urlSegments: string[]): void {
+    void this.router.navigateByUrl('/' + [rootId, ...urlSegments].map(encodeURIComponent).join('/'));
   }
 
   goHome(): void {
-    this.current.set('home');
-    this.activeRoot.set(null);
-    this.selectedCategory.set(null);
-    this.selectedFile.set(null);
-    this.result.set(null);
+    void this.router.navigateByUrl('/');
+  }
+  selectPersona(folder: string): void {
+    if (folder) this.navTo(PERSONA_ROOT, [folder]);
+  }
+  openSchema(): void {
+    void this.router.navigateByUrl('/' + SCHEMA_ROOT);
+  }
+  /** open a node given its containing folder's real path + the node itself. */
+  openNode(rootId: string, parentReal: string[], node: TreeNode): void {
+    this.navTo(rootId, [...parentReal, urlSegmentFor(node)]);
   }
 
-  backToCategories(): void {
-    this.selectedCategory.set(null);
-    this.selectedFile.set(null);
-    this.result.set(null);
-    this.current.set('categoryList');
+  toggleFolder(realSegments: string[]): void {
+    const key = realSegments.join('/');
+    const next = new Set(this.expanded());
+    next.has(key) ? next.delete(key) : next.add(key);
+    this.expanded.set(next);
   }
-
-  backToFiles(): void {
-    this.selectedFile.set(null);
-    this.result.set(null);
-    this.current.set('fileList');
+  isExpanded(realSegments: string[]): boolean {
+    return this.expanded().has(realSegments.join('/'));
+  }
+  isActivePath(mode: NavMode, realSegments: string[]): boolean {
+    return this.mode() === mode && realSegments.join('/') === this.selectedSegments().join('/');
+  }
+  isAncestorOfOpen(realSegments: string[]): boolean {
+    const open = this.selectedSegments();
+    return realSegments.length < open.length && realSegments.every((s, i) => open[i] === s);
   }
 }

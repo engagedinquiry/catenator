@@ -4,11 +4,11 @@ style.visual-theme:
     domain: "presentation layout"
     intent: >
       Apply the same visual style used across all Catenator apps
-      (icons, colors, selector states) to this app's actual UI —
-      home options, category list, file list, content pane.
+      (icons, colors, selector states) to this app's actual UI — nav
+      panel, dropdown, tree, content pane.
     mustNever:
-      - "Change any content-loading logic, folder-browsing behavior,
-         or delivery contract as part of this styling pass"
+      - "Change any content-loading logic, navigation behavior, or
+         delivery contract as part of this styling pass"
       - "Import or create a live dependency on the reference
          application's codebase — copy visual values/assets only"
       - "Introduce a new icon library or dependency without first
@@ -17,30 +17,22 @@ style.visual-theme:
   meso:
     personas:
       - id: reader
-        doing: "Views a consistently styled home, category list, file list, and content pane"
+        doing: "Views a consistently styled nav panel and content pane"
     reference:
       path: "C:\\Users\\parth\\ei\\eisyntaxia_repos\\syntaxia-studio"
       access: "read-only — inspect for styling values and assets, do not modify or import live"
       whatToExtract:
-        - "CSS/styling approach used — global stylesheet, component-
-           scoped styles, a CSS framework, CSS variables/theme file"
+        - "CSS/styling approach — global stylesheet, component-scoped
+           styles, CSS framework, CSS variables/theme file"
         - "Icon set/library used (package name, or custom SVG assets)"
-        - "List-item styling: border weight, corner radius, spacing,
-           and color per state (selected / unselected / hover)"
+        - "List-item/nav styling: border weight, corner radius,
+           spacing, color per state (selected / unselected / hover)"
         - "General color palette and typography, consistent with
            every other Catenator app"
   micro:
     - id: report-before-applying
-      rule: >
-        Before making any visual changes, report what was found in
-        the reference application.
+      rule: "Report what was found in the reference application before making visual changes."
     - id: apply-to-reader-ui-elements
-      rule: >
-        Apply the extracted style to this app's actual UI: the two
-        home options, the category list, the file list, and the
-        content pane.
+      rule: "Apply the extracted style to the nav panel, dropdown, tree, and content pane."
     - id: standalone-styling
-      rule: >
-        All copied styling values and icon assets must be committed
-        into this app's own codebase — nothing here should reference
-        or load from the reference application's files at runtime.
+      rule: "All copied styling values and icon assets are committed into this app's own codebase — nothing loads from the reference application at runtime."
