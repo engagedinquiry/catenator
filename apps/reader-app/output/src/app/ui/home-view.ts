@@ -1,20 +1,26 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { BRAND } from '../brand/brand';
+import { renderFile } from '../core/markdown';
 import { ViewState } from '../state/view-state';
 
 /**
- * view.state 'home' — two options. "Browse by persona" sets activeRoot to
- * "content/"; "View schema docs" sets it to "schema/". Both move to categoryList.
- * The two roots are the only place either string appears in the UI layer.
+ * view.state 'home' — the rendered content of docs/README.md (fetched via the
+ * same folder-browser mechanism, the one-file case), followed by the two
+ * options. "Browse by persona" sets activeRoot to "content/"; "View schema
+ * docs" sets it to "schema/". Both move to categoryList.
  */
 @Component({
   selector: 'app-home-view',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div class="home">
-      <h1>{{ brand.productName }}</h1>
-      <p class="lead">{{ brand.tagline }}</p>
+      @if (readmeHtml()) {
+        <article class="markdown home-readme" [innerHTML]="readmeHtml()"></article>
+      }
+
       <div class="options">
         <button type="button" class="option" (click)="state.chooseRoot('content/')">
           <span class="option-title">Browse by persona</span>
@@ -29,9 +35,9 @@ import { ViewState } from '../state/view-state';
   `,
   styles: [
     `
-      .home { max-width: 640px; margin: 0 auto; padding: 64px 32px; }
-      .home h1 { margin: 0 0 4px; }
-      .options { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+      .home { max-width: 760px; margin: 0 auto; padding: 40px 32px 96px; }
+      .home-readme { margin-bottom: 32px; }
+      .options { display: flex; flex-direction: column; gap: 12px; }
       .option {
         display: flex;
         flex-direction: column;
@@ -53,4 +59,11 @@ import { ViewState } from '../state/view-state';
 export class HomeView {
   readonly brand = BRAND;
   readonly state = inject(ViewState);
+  private sanitizer = inject(DomSanitizer);
+
+  readonly readmeHtml = computed(() => {
+    const r = this.state.homeResult();
+    if (!r?.ok) return '';
+    return this.sanitizer.bypassSecurityTrustHtml(renderFile(r.file, r.text));
+  });
 }

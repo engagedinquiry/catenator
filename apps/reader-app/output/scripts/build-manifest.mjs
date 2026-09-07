@@ -12,7 +12,7 @@
  * Add a root here (or a folder under docs/) and it appears in the app with no
  * other change — nothing downstream names a persona, section, topic, or file.
  */
-import { readdirSync, statSync, mkdirSync, rmSync, cpSync, writeFileSync } from 'node:fs';
+import { readdirSync, statSync, mkdirSync, rmSync, cpSync, copyFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,6 +36,12 @@ rmSync(destBase, { recursive: true, force: true });
 mkdirSync(destBase, { recursive: true });
 
 const manifest = {};
+
+// content.folder-browser: docs/README.md is the one-file case of the same
+// mechanism (shown on home). It is copied and named here, not hardcoded in the app.
+copyFileSync(join(srcBase, 'README.md'), join(destBase, 'README.md'));
+manifest.home = 'README.md';
+
 for (const root of ROOTS) {
   const rootName = root.replace(/\/$/, '');
   const rootDir = join(srcBase, rootName);
@@ -62,8 +68,6 @@ function isFile(p) {
 
 writeFileSync(join(destBase, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
-const counts = Object.entries(manifest)
-  .map(([r, c]) => `${r} ${Object.keys(c).length} categories`)
-  .join(', ');
+const counts = ROOTS.map((r) => `${r} ${Object.keys(manifest[r]).length} categories`).join(', ');
 console.log(`manifest: ${counts}`);
 console.log(`content root: ${destBase}`);

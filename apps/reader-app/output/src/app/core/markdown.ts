@@ -91,6 +91,41 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
+    // GFM pipe table: a header row with "|", then a "| --- | :--: |" delimiter row.
+    if (
+      line.includes('|') &&
+      i + 1 < lines.length &&
+      /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)*\|?\s*$/.test(lines[i + 1])
+    ) {
+      closeLists();
+      const splitRow = (r: string) =>
+        r
+          .trim()
+          .replace(/^\||\|$/g, '')
+          .split('|')
+          .map((c) => c.trim());
+      const headers = splitRow(line);
+      const aligns = splitRow(lines[i + 1]).map((c) =>
+        /^:-+:$/.test(c) ? 'center' : /-+:$/.test(c) ? 'right' : /^:-+/.test(c) ? 'left' : ''
+      );
+      i += 2;
+      const bodyRows: string[][] = [];
+      while (i < lines.length && lines[i].includes('|') && !/^\s*$/.test(lines[i])) {
+        bodyRows.push(splitRow(lines[i]));
+        i++;
+      }
+      const cell = (tag: string, text: string, idx: number) => {
+        const a = aligns[idx] ? ` style="text-align:${aligns[idx]}"` : '';
+        return `<${tag}${a}>${inline(text)}</${tag}>`;
+      };
+      const thead = `<thead><tr>${headers.map((c, x) => cell('th', c, x)).join('')}</tr></thead>`;
+      const tbody = `<tbody>${bodyRows
+        .map((r) => `<tr>${headers.map((_h, x) => cell('td', r[x] ?? '', x)).join('')}</tr>`)
+        .join('')}</tbody>`;
+      html.push(`<table>${thead}${tbody}</table>`);
+      continue;
+    }
+
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       closeLists();

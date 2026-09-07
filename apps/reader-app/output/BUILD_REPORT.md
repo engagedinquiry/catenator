@@ -1,5 +1,26 @@
 # Build report — reader-app
 
+## Component update — view.state + content.folder-browser
+
+`RUN.md` scoped a run to
+`COMPONENTS = ["components/view-state.yaml", "components/content-folder-browser.yaml"]`.
+New rules and their implementation:
+
+| New rule | Implementation |
+|---|---|
+| `content.folder-browser` behavior: `docs/README.md` rendered on home as the one-file case of the same mechanism | `build-manifest.mjs` copies `docs/README.md` and records `manifest.home = "README.md"`; `FolderBrowser.homeFile()` / `homeFileUrl()`; `ViewState.loadHome()` calls the same `deliver()` with empty root+category; `HomeView` renders it above the two options. |
+| `two-instances-same-mechanism` → now three uses (content/, schema/, home README) | same `deliver()` + `renderFile()` path; `deliver()` allows empty root+category only for the one-file case. |
+| `full-markdown-rendering`: GFM tables (pipe syntax) → real `<table>`, not literal pipes | `markdown.ts` gained a pipe-table parser (header row + `\| --- \| :--: \|` delimiter → `<table><thead>…<tbody>…`, with `text-align` from `:--`/`--:`). Test `markdown: GFM pipe table renders as a real <table>`. Verified in-browser on `docs/schema/3-views/3.1-interface.md` — 2 `<th>`, 10 `<td>`, bordered. |
+| `view.state` home: README content THEN the two options | `HomeView` template. |
+| `view.state` fileList: + sibling-category dropdown, jump without returning to categoryList | `CategorySwitcher` (`<select>` of `siblingCategories()`), shown in the fileList view; `switchCategory()` → target category's fileList. |
+| `view.state` content: + same dropdown; switching jumps to that category's fileList, not Home | `CategorySwitcher` shown in the content view too; verified: from a content page, choosing "creators" landed on the creators fileList. |
+| `category-switcher-dropdown` micro | **NOTE: this micro rule is truncated in the spec file** — it ends mid-sentence at "Once inside a category (fileList or". Implemented from the fully-specified `meso.states` descriptions for fileList and content. |
+
+Tests 15 → 17. Production build 147 → 150 kB. All prior behaviour unchanged.
+
+---
+
+
 Full build from `apps/reader-app/specs/` per `apps/shared/BUILD_INSTRUCTIONS.md`.
 `output/` was deleted and regenerated from scratch — this app shares no code
 with the previous (routed, persona-catalog) design, which the rewritten spec

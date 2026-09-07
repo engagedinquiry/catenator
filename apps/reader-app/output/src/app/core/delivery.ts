@@ -23,7 +23,9 @@ export async function deliver(
   file: string,
   fetchText: (url: string) => Promise<string> = defaultFetchText
 ): Promise<DeliveryResult> {
-  if (!root || !category || !file) {
+  // root + category are empty only for the home README (the one-file case);
+  // any other view requires all three.
+  if (!file || ((root || category) && !(root && category))) {
     return { ok: false, message: 'Nothing selected.' };
   }
   try {

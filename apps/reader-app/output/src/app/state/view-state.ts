@@ -12,7 +12,7 @@ export type ViewName = 'home' | 'categoryList' | 'fileList' | 'content';
  * micro.single-state-variable: `current` holds the active view; `activeRoot`,
  * `selectedCategory`, `selectedFile` accumulate as the reader drills down.
  * micro.back-navigation-is-explicit-controls: goHome / backToCategories /
- * backToFiles are the only ways back — no browser-back support.
+ * backToFiles / switchCategory (the dropdown) are the only ways back.
  */
 @Injectable({ providedIn: 'root' })
 export class ViewState {
@@ -26,6 +26,9 @@ export class ViewState {
   readonly loading = signal(false);
   readonly result = signal<DeliveryResult | null>(null);
 
+  /** home state: docs/README.md, rendered via the same folder-browser mechanism. */
+  readonly homeResult = signal<DeliveryResult | null>(null);
+
   readonly categories = computed(() => {
     const r = this.activeRoot();
     return r ? this.browser.categories(r) : [];
@@ -35,6 +38,15 @@ export class ViewState {
     const c = this.selectedCategory();
     return r && c ? this.browser.files(r, c) : [];
   });
+
+  /** view.state fileList/content: sibling categories under the current root. */
+  readonly siblingCategories = this.categories;
+
+  async loadHome(): Promise<void> {
+    if (this.homeResult()) return;
+    const res = await deliver(this.browser, '', '', this.browser.homeFile());
+    this.homeResult.set(res);
+  }
 
   /** home: "Browse by persona" -> "content/", "View schema docs" -> "schema/". */
   chooseRoot(root: string): void {
@@ -50,6 +62,15 @@ export class ViewState {
     this.selectedFile.set(null);
     this.result.set(null);
     this.current.set('fileList');
+  }
+
+  /**
+   * view.state.category-switcher-dropdown: from fileList or content, jump
+   * straight to another sibling category's fileList — not back to Home.
+   */
+  switchCategory(category: string): void {
+    if (!category || category === this.selectedCategory()) return;
+    this.chooseCategory(category);
   }
 
   async chooseFile(file: string): Promise<void> {

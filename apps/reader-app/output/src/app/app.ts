@@ -7,6 +7,7 @@ import { AppIcon } from './ui/app-icon';
 import { HomeView } from './ui/home-view';
 import { ListView } from './ui/list-view';
 import { ContentView } from './ui/content-view';
+import { CategorySwitcher } from './ui/category-switcher';
 
 /**
  * The whole shell. There is no router — `state.current()` decides which view
@@ -17,7 +18,7 @@ import { ContentView } from './ui/content-view';
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppIcon, HomeView, ListView, ContentView],
+  imports: [AppIcon, HomeView, ListView, ContentView, CategorySwitcher],
   template: `
     <div class="studio-shell">
       <nav class="rail">
@@ -51,6 +52,7 @@ import { ContentView } from './ui/content-view';
                   (home)="state.goHome()" />
               }
               @case ('fileList') {
+                <div class="view-bar"><app-category-switcher /></div>
                 <app-list-view
                   [heading]="state.selectedCategory() ?? ''"
                   [items]="state.files()"
@@ -61,6 +63,7 @@ import { ContentView } from './ui/content-view';
                   (home)="state.goHome()" />
               }
               @case ('content') {
+                <div class="view-bar"><app-category-switcher /></div>
                 <app-content-view />
               }
             }
@@ -95,6 +98,13 @@ import { ContentView } from './ui/content-view';
         color: #ffffff;
       }
       .workspace { flex: 1; min-height: 0; overflow-y: auto; background: var(--panel-bg); }
+      .view-bar {
+        display: flex;
+        justify-content: flex-end;
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 14px 32px 0;
+      }
     `
   ]
 })
@@ -112,7 +122,8 @@ export class App implements OnInit {
     inject(Title).setTitle(BRAND_TITLE);
   }
 
-  ngOnInit(): void {
-    void this.browser.load();
+  async ngOnInit(): Promise<void> {
+    await this.browser.load();
+    await this.state.loadHome();
   }
 }

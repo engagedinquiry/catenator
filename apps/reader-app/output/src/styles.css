@@ -111,3 +111,23 @@ code {
 .markdown hr { border: 0; border-top: 1px solid var(--border-subtle); margin: 24px 0; }
 .markdown a { text-decoration: underline; }
 .markdown img { max-width: 100%; }
+
+.markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  display: block;
+  overflow-x: auto;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--border-subtle);
+  padding: 7px 10px;
+  text-align: left;
+}
+.markdown th {
+  background: var(--panel-bg);
+  font-family: var(--font-display);
+  color: var(--text-title);
+}

@@ -5,7 +5,8 @@ import { renderFile, renderMarkdown } from '../src/app/core/markdown.ts';
 
 // A tiny stand-in for FolderBrowser — deliver() only needs fileUrl().
 const browser = {
-  fileUrl: (root, category, file) => `assets/content/${root}${category}/${file}`
+  fileUrl: (root, category, file) =>
+    ['assets/content', root, category, file].join('/').replace(/\/{2,}/g, '/').replace(/\/+$/, '')
 };
 
 test('delivery: builds the URL only from the three passed-in values', async () => {
@@ -46,4 +47,21 @@ test('markdown: renderFile picks renderer by extension', () => {
 
 test('markdown: raw HTML in prose is escaped', () => {
   assert.match(renderMarkdown('text <script>x</script>'), /&lt;script&gt;/);
+});
+
+test('markdown: GFM pipe table renders as a real <table> (full-markdown-rendering)', () => {
+  const md = ['| Route | Renders |', '| --- | :---: |', '| `/` | home |', '| `/x` | other |'].join('\n');
+  const html = renderMarkdown(md);
+  assert.match(html, /<table>/);
+  assert.match(html, /<thead><tr><th>Route<\/th><th style="text-align:center">Renders<\/th><\/tr><\/thead>/);
+  assert.match(html, /<tbody><tr><td>.*<\/td><td style="text-align:center">home<\/td><\/tr>/);
+  assert.ok(!html.includes('| Route |'), 'literal pipes leaked into output');
+});
+
+test('delivery: home README is the one-file case — empty root/category allowed', async () => {
+  const res = await deliver(browser, '', '', 'README.md', async (u) => {
+    assert.equal(u, 'assets/content/README.md');
+    return '# Catenator';
+  });
+  assert.equal(res.ok, true);
 });

@@ -28,13 +28,18 @@ plus a copy of every file. Re-run it after changing anything under `docs/`.
 
 | State | Shows | Reached by |
 |---|---|---|
-| `home` | Two options | initial |
+| `home` | `docs/README.md` rendered, then two options | initial |
 | `categoryList` | Subfolders of the chosen root | clicking an option |
-| `fileList` | Files in the chosen subfolder | clicking a category |
-| `content` | The chosen file, rendered | clicking a file |
+| `fileList` | Files in the chosen subfolder + a sibling-category dropdown | clicking a category |
+| `content` | The chosen file (GFM, incl. tables) + the same dropdown | clicking a file |
 
-Back is via explicit controls only (breadcrumb links, the rail logo = Home) —
-no browser-back support, by spec.
+The `docs/README.md` on home, the persona folders, and the schema sections are
+all the one `content.folder-browser` mechanism with a different root/file
+parameter.
+
+Back is via explicit controls only — breadcrumb links, the rail logo (Home), or
+the category dropdown (jumps straight to another category's file list). No
+browser-back support, by spec.
 
 ## Spec → code
 

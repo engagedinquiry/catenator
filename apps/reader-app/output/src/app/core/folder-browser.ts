@@ -15,7 +15,8 @@ import { resolveContentPath } from './build-config';
  * micro.folder-name-is-the-label: the strings returned here ARE the on-disk
  * folder / file names, passed straight to the template.
  */
-type Manifest = Record<string, Record<string, string[]>>;
+/** { home: "README.md", "content/": {...}, "schema/": {...} } */
+type Manifest = { home?: string } & Record<string, Record<string, string[]>>;
 
 @Injectable({ providedIn: 'root' })
 export class FolderBrowser {
@@ -37,9 +38,19 @@ export class FolderBrowser {
     }
   }
 
-  /** The roots the manifest was built for (e.g. "content/", "schema/"). */
+  /** The browsable roots (e.g. "content/", "schema/") — the "/"-suffixed keys. */
   roots(): string[] {
-    return Object.keys(this.manifest() ?? {});
+    return Object.keys(this.manifest() ?? {}).filter((k) => k.endsWith('/'));
+  }
+
+  /** The single root-level file rendered on home (docs/README.md). */
+  homeFile(): string {
+    return this.manifest()?.home ?? 'README.md';
+  }
+
+  /** URL for the home file — the one-file case of the same mechanism. */
+  homeFileUrl(): string {
+    return resolveContentPath(this.homeFile());
   }
 
   /** Immediate subfolders of a root — each is a category the reader can pick. */
