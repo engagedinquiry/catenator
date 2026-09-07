@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import {
   displayName,
   displayTitle,
+  folderLabel,
+  firstSortedFile,
   orderSort,
   urlSegmentFor,
   resolveNode
@@ -52,11 +54,36 @@ test('content.browser: every tree node is {name,type}, folders recurse (no fixed
   manifest.roots.forEach((r) => check(r.tree));
 });
 
-test('content.browser: displayTitle uses the H1, falls back to order-stripped name minus ext', () => {
+test('content.browser: displayTitle uses the H1 for files, sentence-cased folder label for folders', () => {
   assert.equal(displayTitle({ name: '3.1-interface.md', type: 'file', title: 'Interface' }), 'Interface');
   assert.equal(displayTitle({ name: '3.1-interface.md', type: 'file' }), 'interface');
   assert.equal(displayTitle({ name: '9.1-x.yaml', type: 'file' }), 'x');
-  assert.equal(displayTitle({ name: '2-descriptors', type: 'folder' }), 'descriptors');
+  assert.equal(displayTitle({ name: '2-descriptors', type: 'folder' }), 'Descriptors');
+});
+
+test('content.browser: folderLabel strips order prefix, hyphens->spaces, capitalizes first letter', () => {
+  assert.equal(folderLabel('2-tech-writers'), 'Tech writers');
+  assert.equal(folderLabel('5-engineers'), 'Engineers');
+  assert.equal(folderLabel('governing-docs'), 'Governing docs');
+  assert.equal(folderLabel('1-founding-statement'), 'Founding statement');
+});
+
+test('content.browser: firstSortedFile is the order-first file, never a README name match', () => {
+  const folder = {
+    name: 'p',
+    type: 'folder',
+    children: [
+      { name: 'README.md', type: 'file' },
+      { name: '1-intro.md', type: 'file' },
+      { name: 'zeta.md', type: 'file' }
+    ]
+  };
+  assert.equal(firstSortedFile(folder).name, '1-intro.md');
+  // no order prefixes -> first alphabetically, still not a README special-case
+  const noPrefix = { name: 'p', type: 'folder', children: [
+    { name: 'refraction.md', type: 'file' }, { name: 'README.md', type: 'file' }, { name: 'delivering.md', type: 'file' }
+  ]};
+  assert.equal(firstSortedFile(noPrefix).name, 'delivering.md');
 });
 
 test('content.browser: manifest markdown files carry a parsed H1 title', () => {
@@ -90,9 +117,10 @@ test('content.browser: resolveNode matches a URL segment by stem, returns real p
   assert.equal(resolveNode(tree, ['3-views', 'nope']), null);
 });
 
-test('content.browser: schema/ subfolders carry order prefixes; personas/ do not', () => {
-  const schema = manifest.roots.find((r) => r.id === 'schema').tree.children.map((c) => c.name);
-  assert.ok(schema.some((n) => /^\d/.test(n)), `expected numbered sections: ${schema}`);
-  const personas = manifest.roots.find((r) => r.id === 'personas').tree.children.map((c) => c.name);
-  assert.ok(personas.every((n) => !/^\d/.test(n)), `persona folders should be plain: ${personas}`);
+test('content.browser: real folder names keep their order prefixes; displayed labels never show one', () => {
+  for (const root of manifest.roots) {
+    const folders = root.tree.children.filter((c) => c.type === 'folder').map((c) => c.name);
+    assert.ok(folders.some((n) => /^\d/.test(n)), `expected numbered folders in ${root.id}: ${folders}`);
+    for (const n of folders) assert.ok(!/^\d/.test(folderLabel(n)), `label for ${n} still shows a number`);
+  }
 });

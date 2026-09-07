@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { ContentBrowser, displayName, displayTitle, urlSegmentFor } from '../core/content-browser';
+import { ContentBrowser, displayTitle, folderLabel, urlSegmentFor } from '../core/content-browser';
 import type { TreeNode } from '../core/content-browser';
 import { deliver, deliverHome, DeliveryResult } from '../core/delivery';
 import { pageTitle } from '../brand/brand';
@@ -72,20 +72,21 @@ export class ViewState {
       }
 
       // /personas/<folder>: mode persona, topic list shown, AND the folder's
-      // README.md renders immediately — no "pick a topic" placeholder
-      // (view.state.readme-renders-immediately-on-persona-select).
+      // default file (whichever sorts first — content.browser
+      // first-file-is-folder-default-content) renders immediately, no
+      // placeholder (view.state.default-file-renders-immediately-on-persona-select).
       const folder = rest[0] ?? null;
-      const readme = folder ? this.browser.readmeAt(PERSONA_ROOT, [folder]) : null;
-      if (folder && readme) {
-        const real = [folder, readme.name];
+      const def = folder ? this.browser.defaultFileAt(PERSONA_ROOT, [folder]) : null;
+      if (folder && def) {
+        const real = [folder, def.name];
         this.set('persona', folder, real);
         await this.loadFile(PERSONA_ROOT, real);
-        this.setTitleFor(readme);
+        this.setTitleFor(def);
       } else {
         this.set('persona', folder, folder ? [folder] : []);
         this.result.set(null);
         this.loading.set(false);
-        this.title.setTitle(pageTitle(folder ? [displayName(folder)] : []));
+        this.title.setTitle(pageTitle(folder ? [folderLabel(folder)] : []));
       }
       return;
     }
@@ -107,7 +108,7 @@ export class ViewState {
       } else {
         this.result.set(null);
         this.loading.set(false);
-        this.title.setTitle(pageTitle(real.map(displayName).reverse()));
+        this.title.setTitle(pageTitle(real.map(folderLabel).reverse()));
       }
       return;
     }
@@ -119,7 +120,7 @@ export class ViewState {
 
   /** ui.edge-cases.dynamic-page-title: file H1 + its folders + the product name. */
   private setTitleFor(node: TreeNode): void {
-    const folders = this.selectedSegments().slice(0, -1).map(displayName).reverse();
+    const folders = this.selectedSegments().slice(0, -1).map(folderLabel).reverse();
     this.title.setTitle(pageTitle([displayTitle(node), ...folders]));
   }
 

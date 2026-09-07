@@ -5,20 +5,16 @@ import {
   TreeNode,
   displayName,
   displayTitle,
+  firstSortedFile,
+  folderLabel,
   orderSort,
   resolveNode,
   sortChildren,
   urlSegmentFor
 } from './content-tree';
 
-export { displayName, displayTitle, orderSort, urlSegmentFor };
+export { displayName, displayTitle, folderLabel, orderSort, urlSegmentFor };
 export type { TreeNode, RootConfig };
-
-/** content.browser: a folder's README.md child, if it has one (its default content). */
-export function folderReadme(folder: TreeNode | null): TreeNode | null {
-  if (!folder || folder.type !== 'folder') return null;
-  return (folder.children ?? []).find((c) => c.type === 'file' && /^readme\.md$/i.test(c.name)) ?? null;
-}
 
 /**
  * content.browser — one recursive mechanism for walking pre-authored folders of
@@ -78,9 +74,12 @@ export class ContentBrowser {
     return resolveNode(this.root(rootId)?.tree ?? null, urlSegments);
   }
 
-  /** The README node of a folder at a real path, or null. */
-  readmeAt(rootId: string, realSegments: string[]): TreeNode | null {
-    return folderReadme(resolveNode(this.root(rootId)?.tree ?? null, realSegments)?.node ?? null);
+  /**
+   * content.browser micro.first-file-is-folder-default-content: the file that
+   * sorts first inside a folder — its default content. No name matching.
+   */
+  defaultFileAt(rootId: string, realSegments: string[]): TreeNode | null {
+    return firstSortedFile(resolveNode(this.root(rootId)?.tree ?? null, realSegments)?.node ?? null);
   }
 
   isFile(rootId: string, urlSegments: string[]): boolean {

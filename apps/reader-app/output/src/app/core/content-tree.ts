@@ -30,14 +30,35 @@ export function displayName(name: string): string {
 }
 
 /**
+ * content.browser micro.sentence-case-folder-labels: a folder's displayed label,
+ * after order-prefix stripping — hyphens become spaces, first letter capitalized
+ * (e.g. a two-word hyphenated folder becomes a capitalized two-word phrase).
+ * Folders only, never file titles (those use their H1).
+ */
+export function folderLabel(name: string): string {
+  const s = displayName(name).replace(/-/g, ' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
  * content.browser micro.title-from-h1-not-filename: the label shown for a node
  * everywhere (nav entry, browser tab). A markdown file's first H1 wins; the
  * fallback is the order-stripped filename with its extension dropped. Folders
- * use the order-stripped folder name.
+ * use the sentence-cased order-stripped folder name.
  */
 export function displayTitle(node: TreeNode): string {
-  if (node.type === 'folder') return displayName(node.name);
+  if (node.type === 'folder') return folderLabel(node.name);
   return node.title ?? displayName(node.name).replace(/\.[^.]+$/, '');
+}
+
+/**
+ * content.browser micro.first-file-is-folder-default-content: a folder's default
+ * content is whichever file sorts FIRST (numeric-sort-by-order-prefix) — never a
+ * filename match against "README" or any other name. Ordering, not naming.
+ */
+export function firstSortedFile(folder: TreeNode | null): TreeNode | null {
+  if (!folder || folder.type !== 'folder') return null;
+  return sortChildren(folder.children ?? []).find((c) => c.type === 'file') ?? null;
 }
 
 /** Numeric sort by order prefix (2 before 10, 3.1 before 3.2); unprefixed last. */

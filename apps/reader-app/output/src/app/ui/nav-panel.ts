@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { displayName } from '../core/content-browser';
+import { folderLabel } from '../core/content-browser';
 import { ViewState } from '../state/view-state';
 import { AppIcon } from './app-icon';
 import { PersonaTopics } from './persona-topics';
@@ -124,6 +124,6 @@ export class NavPanel {
     this.state.selectPersona((ev.target as HTMLSelectElement).value);
   }
   label(name: string): string {
-    return displayName(name);
+    return folderLabel(name);
   }
 }

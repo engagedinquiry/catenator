@@ -58,6 +58,15 @@ content.browser:
         below) — the leading order token is removed for display only.
         The full original name is retained for sorting and for URL
         routing.
+    - id: sentence-case-folder-labels
+      rule: >
+        A folder's displayed label (after order-prefix stripping) is
+        converted to sentence case: hyphens become spaces, and the
+        first letter is capitalized — "tech-writers" displays as
+        "Tech writers", "engineers" displays as "Engineers". This
+        applies to dropdown options and tree folder labels alike. It
+        does NOT apply to file titles, which use their own H1 per the
+        title rule below, not this transformation.
     - id: numeric-sort-by-order-prefix
       rule: >
         Entries are sorted by their order prefix numerically (2 before
@@ -72,12 +81,19 @@ content.browser:
         order-stripped filename (still without its .md extension) as
         the displayed title — never show the raw filename when an H1
         is present.
-    - id: readme-is-folder-default-content
+    - id: first-file-is-folder-default-content
       rule: >
-        When a folder (e.g. a persona's folder) contains a README.md,
-        that file's content is surfaced as the folder's default
-        content — returned as part of selecting that folder, not
-        requiring a separate click on README.md in the file list.
+        A folder's default content (e.g. a persona's folder, shown
+        immediately on selection) is whichever file sorts FIRST per
+        numeric-sort-by-order-prefix — never a filename match against
+        "README" or any other specific name. Ordering, not naming, is
+        what determines the default. If the author wants a specific
+        file to be the default, they give it the lowest order prefix
+        (e.g. "1-"); the mechanism never inspects the filename itself
+        to decide this. If no file in the folder has an order prefix
+        at all, fall back to whatever order the filesystem returns,
+        applied consistently (see scan-at-build-or-load) — still no
+        name-based special-casing.
     - id: full-markdown-rendering
       rule: >
         File content renders with GFM support, including tables (pipe

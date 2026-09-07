@@ -39,10 +39,12 @@ view.state:
       - "Selecting a persona: mode becomes 'persona', in one atomic
          update — Schema docs button's active state clears, its tree
          (if shown) is fully removed from the DOM (not just hidden),
-         that persona's flat topic list (including README.md, titled
-         by its H1) appears directly below the dropdown, AND the
-         content pane immediately renders that persona's README.md
-         content. No step in between shows a placeholder."
+         that persona's flat topic list (every file, titled by its
+         H1) appears directly below the dropdown, AND the content
+         pane immediately renders that persona's default file's
+         content per content.browser's first-file-is-folder-default-
+         content rule — no name-matching, whichever file sorts first.
+         No step in between shows a placeholder."
       - "Clicking a topic: content pane shows that file, titled by its
          H1. The topic is marked selected in the nav panel."
       - "Clicking Schema docs: mode becomes 'schema', in one atomic
@@ -77,10 +79,11 @@ view.state:
         H1 title), and any containing folder in the schema tree, are
         all visibly highlighted/marked as active at all times while
         something is open.
-    - id: readme-renders-immediately-on-persona-select
+    - id: default-file-renders-immediately-on-persona-select
       rule: >
         Selecting a persona from the dropdown is sufficient, on its
-        own, to render that persona's README.md in the content pane —
-        this happens in the same action as populating the topic list,
-        not as a separate step requiring the reader to also click
-        README.md in the list.
+        own, to render that persona's default file (whichever sorts
+        first, per content.browser) in the content pane — this
+        happens in the same action as populating the topic list, not
+        as a separate step requiring the reader to also click a file
+        in the list.

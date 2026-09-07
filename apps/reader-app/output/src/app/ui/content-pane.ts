@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { displayName } from '../core/content-browser';
+import { folderLabel } from '../core/content-browser';
 import { renderFile } from '../core/markdown';
 import { ViewState } from '../state/view-state';
 
@@ -64,6 +64,6 @@ export class ContentPane {
   });
 
   label(name: string | null): string {
-    return name ? displayName(name) : '';
+    return name ? folderLabel(name) : "";
   }
 }
