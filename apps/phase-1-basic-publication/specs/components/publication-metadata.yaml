@@ -1,0 +1,29 @@
+publication.metadata:
+  macro:
+    systemName: "publication.metadata"
+    domain: "content governance"
+    intent: >
+      Hold the publication's own top-level identity — its display
+      name and any other publication-wide metadata fields, separate
+      from any individual topic.
+    mustNever:
+      - "Confuse publication metadata with any individual topic's
+         metadata — they are separate records, edited in separate
+         Panel 1 selections"
+  meso:
+    personas:
+      - id: author
+        doing: "Edits the publication's own display name and metadata"
+    fields:
+      displayName: string
+      metadata: "structured, extensible — at minimum displayName"
+  micro:
+    - id: default-selection-on-load
+      rule: >
+        On a fresh load, with nothing yet selected in Panel 1, the
+        Publication metadata form is shown by default in Panel 2 —
+        it is the top-level entry point into the app.
+    - id: form-not-markdown
+      rule: >
+        Publication metadata is structured data, not prose — it
+        renders as a form in editor.generic, with no Preview tab.

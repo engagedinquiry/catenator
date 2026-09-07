@@ -1,0 +1,38 @@
+style.visual-theme:
+  macro:
+    systemName: "style.visual-theme"
+    domain: "presentation layout"
+    intent: >
+      Apply the same visual style used across all Catenator apps to
+      this app's three-panel layout, accordion, and forms — copied as
+      static values/assets, never a live dependency.
+    mustNever:
+      - "Change any pipeline logic, hierarchy logic, refraction
+         mechanism, or Quality Check as part of this styling pass"
+      - "Import or create a live dependency on the reference
+         application's codebase — copy visual values/assets only"
+      - "Introduce a new icon library or dependency without first
+         checking whether apps/phase-0-single-topic's committed
+         design-system tokens can be reused directly"
+  meso:
+    personas:
+      - id: author
+        doing: "Views a consistently styled three-panel layout, accordion, and forms"
+    reference:
+      preferredSource: "apps/phase-0-single-topic's already-committed design-system tokens — reuse these directly rather than re-inspecting the external reference app"
+      fallbackPath: "C:\\Users\\parth\\ei\\eisyntaxia_repos\\syntaxia-studio"
+      note: >
+        This fallback is a known limitation (an absolute local path)
+        carried over from phase-0-single-topic — only resolves on
+        the machine it was written on. Prefer reusing phase-0's
+        already-committed tokens over depending on this path.
+  micro:
+    - id: reuse-phase-0-tokens-first
+      rule: >
+        Before falling back to the external reference path, check
+        whether apps/phase-0-single-topic's already-applied design-
+        system tokens (colors, badge states, spacing) can be reused
+        directly for this app's accordion and panel styling — they
+        should be, since both apps are meant to look consistent.
+    - id: standalone-styling
+      rule: "All styling values are committed into this app's own codebase — nothing loads from any reference app at runtime."

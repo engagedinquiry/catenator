@@ -1,0 +1,37 @@
+editor.generic:
+  macro:
+    systemName: "editor.generic"
+    domain: "presentation layout"
+    intent: >
+      One reusable editor component, in Panel 2, that renders
+      differently depending on whether the currently selected Panel
+      1 item is structured data (a form) or markdown content
+      (Metadata/Editor/Preview tabs) — never a modal dialog.
+    mustNever:
+      - "Show a Preview tab for structured data (Publication
+         metadata, Variables, Sources, Personas) — Preview only
+         applies to markdown topic content"
+      - "Open any selection in a modal dialog — every edit happens
+         inline, in Panel 2, for the entire duration of this phase"
+  meso:
+    personas:
+      - id: author
+        doing: "Edits whatever is currently selected in Panel 1, inline in Panel 2"
+    renderModes:
+      - selectionType: "Publication metadata, Variables, Sources, Personas"
+        renders: "form"
+        tabs: "none — no Preview button shown at all"
+      - selectionType: "Topic"
+        renders: "markdown"
+        tabs: "Metadata / Editor / Preview"
+  micro:
+    - id: no-dialogs-anywhere
+      rule: >
+        This phase contains zero modal dialogs. Every one of the
+        five selectable item types (Publication, Topic, Variable,
+        Source, Persona) opens inline in Panel 2 via this component.
+    - id: default-on-load
+      rule: >
+        With nothing selected, Panel 2 shows publication.metadata's
+        form by default (per publication.metadata's
+        default-selection-on-load rule).

@@ -1,0 +1,29 @@
+variable.substitution:
+  macro:
+    systemName: "variable.substitution"
+    domain: "content governance"
+    intent: >
+      Hold publication-level name/value variables, referenced inside
+      topic content as {{variable_name}}.
+    mustNever:
+      - "Resolve or substitute a variable's value live while the
+         author is typing — resolution is checked only by
+         quality-check.four-checks, not enforced inline in this phase"
+      - "Allow a topic to define its own local variable — all
+         variables are publication-level, shared across every topic"
+  meso:
+    personas:
+      - id: author
+        doing: "Defines name/value variables; references them inside topic content"
+    fields:
+      variables: "list of {name, value} — publication-level"
+  micro:
+    - id: reference-syntax
+      rule: >
+        A variable is referenced inside topic markdown content as
+        {{variable_name}}, matching the name field exactly
+        (case-sensitive).
+    - id: form-not-markdown
+      rule: >
+        Variables are structured data, not prose — rendered as a
+        form in editor.generic, with no Preview tab.

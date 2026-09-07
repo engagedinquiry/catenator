@@ -1,0 +1,12 @@
+# Build config — phase-1-basic-publication
+
+specPath: "apps/phase-1-basic-publication/specs/"
+outputPath: "apps/phase-1-basic-publication/output/"
+
+techStack:
+  frontend: "Angular"
+
+branding:
+  productName: "Catenator"
+  tagline: "Creating and Refracting — Basic Publication"
+  priorNames: ["Syntaxia", "Syntaxia Studio"]

@@ -1,0 +1,61 @@
+systemName: "Creating and Refracting — Basic Publication"
+domain: "guided authoring workspace"
+intent: >
+  The progressive next step from apps/phase-0-single-topic: author a
+  publication — a hierarchy of topics of arbitrary depth, sharing
+  sources (with per-topic override), up to two personas, and
+  publication-level variables — then refract every topic for every
+  persona in one action. No modal dialogs anywhere in this phase.
+mustNever:
+  - "Assume or hardcode a maximum topic-tree depth"
+  - "Allow more than 2 personas in the publication"
+  - "Open any Panel 1 selection in a modal dialog — everything is
+     edited inline, in Panel 2, for this entire phase"
+  - "Include a Shared Blocks accordion section, block-editing UI, or
+     block-reference resolution — Shared Blocks is deferred to the
+     next phase"
+  - "State a fact in refracted output absent from a topic's own
+     content or its resolved sources"
+contentScope:
+  inScope:
+    - "Publication metadata and topic hierarchy (arbitrary depth)"
+    - "Sources, publication-level, with per-topic override"
+    - "Personas, publication-level, max 2, same shape as phase-0-single-topic"
+    - "Variables, publication-level, {{name}} substitution"
+    - "Refraction at the publication level, one action, every topic x every persona"
+  excluded:
+    - "Shared Blocks (next phase)"
+    - "Per-topic persona visibility / exclude-for / only-for (next phase)"
+    - "Any modal dialog"
+    - "Live variable/source-reference validation while typing (Quality Check only)"
+  fixedDimensions: ["Surface", "Content", "Context", "Time", "Trust"]
+    # Canonical for THIS app. Matches phase-0-single-topic's own
+    # canonical list by value, not by cross-app file reference —
+    # each app owns its own copy of this constant, since they are
+    # separate deployable apps, not a shared runtime.
+personas:
+  - id: author
+    accessScope: full
+    doing: "Authors the publication: topics, sources, personas, variables; triggers refraction"
+
+rule:
+  - id: leverage-naming
+    rule: >
+      Prefer a recognized domain/component/integration name over
+      restating its conventional behavior in full. Always state
+      business-specific numbers, thresholds, and exceptions
+      explicitly.
+
+components:
+  - ref: components/layout-three-panel.yaml
+  - ref: components/publication-metadata.yaml
+  - ref: components/topic-hierarchy.yaml
+  - ref: components/source-with-override.yaml
+  - ref: components/persona-catalog.yaml
+  - ref: components/variable-substitution.yaml
+  - ref: components/editor-generic.yaml
+  - ref: components/guide-static.yaml
+  - ref: components/quality-check.yaml
+  - ref: components/refraction-publication-level.yaml
+  - ref: components/branding-rename.yaml
+  - ref: components/style-visual-theme.yaml

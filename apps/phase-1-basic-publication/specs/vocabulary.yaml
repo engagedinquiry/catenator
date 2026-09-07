@@ -1,0 +1,24 @@
+vocabulary:
+  - term: "publication"
+    definition: >
+      The unit of work in this phase — a hierarchy of topics, sharing
+      one set of sources, personas, and variables. Replaces phase-0's
+      single topic as the thing being authored and refracted.
+  - term: "topic hierarchy"
+    definition: >
+      An arbitrary-depth tree of topics. Depth is never assumed or
+      hardcoded — a topic may have children, which may have children,
+      to whatever depth the publication actually needs. Siblings can
+      be reordered; a topic cannot be moved to a different parent in
+      this phase.
+  - term: "variable substitution"
+    definition: >
+      A publication-level name/value pair, referenced inside topic
+      content as {{variable_name}}. Resolution is checked by Quality
+      Check, not enforced live while typing.
+  - term: "per-topic source override"
+    definition: >
+      By default every source is available to every topic. A topic's
+      own metadata can name a specific subset of sources it prefers,
+      which overrides the publication-wide default for that topic
+      only — it does not remove the source from other topics.

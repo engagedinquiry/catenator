@@ -1,0 +1,36 @@
+source.with-override:
+  macro:
+    systemName: "source.with-override"
+    domain: "content governance"
+    intent: >
+      Hold publication-level sources, available by default to every
+      topic, with each topic able to override the default set for
+      itself specifically.
+    mustNever:
+      - "Let a topic's source override remove or alter a source for
+         any OTHER topic — an override is scoped to the one topic
+         that set it"
+      - "Require every topic to explicitly list sources — the
+         default (all publication sources available) applies unless
+         a topic states otherwise"
+  meso:
+    personas:
+      - id: author
+        doing: "Manages the publication's source list; optionally overrides it per topic"
+    fields:
+      sources: "list of {title, reference, description} — publication-level"
+      # Per-topic override lives on the topic itself, per
+      # topic.hierarchy's fields.sourceOverride[]
+  micro:
+    - id: default-is-all-sources
+      rule: >
+        A topic with no sourceOverride set uses every source in the
+        publication's source list. sourceOverride, when present, is a
+        list of source ids — only those sources are used for that
+        topic, replacing the default entirely for that topic.
+    - id: override-references-real-sources-only
+      rule: >
+        Every id in a topic's sourceOverride must correspond to a
+        source that actually exists in the publication's source
+        list — checked by quality-check.four-checks, not enforced
+        live while typing.

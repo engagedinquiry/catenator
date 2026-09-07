@@ -1,0 +1,80 @@
+{
+  "_note": "Fixture publication for phase-1-basic-publication. A small rate-limiting publication with a 3-level topic hierarchy, two sources, two personas, one variable, and per-topic source overrides. It is authored to PASS all four quality-check.four-checks. The RUN.md set FIXTURE_DIR to this folder but shipped no files; this fixture and expected.json were created for the build so the deterministic core (tree ops, source resolution, variable references, quality check, refraction fan-out) can be tested against a concrete example.",
+  "meta": { "displayName": "Rate Limiting Guide" },
+  "variables": [
+    { "name": "api_name", "value": "Acme Gateway" }
+  ],
+  "sources": [
+    {
+      "id": "src-a",
+      "title": "Rate limiting overview",
+      "reference": "ADR-014",
+      "description": "Sliding window limiter. On limit exceeded the API returns a 429 status and an X-RateLimit-Reset header."
+    },
+    {
+      "id": "src-b",
+      "title": "Client retry guidance",
+      "reference": "Handbook 3.2",
+      "description": "Clients should honor Retry-After and back off exponentially, adding random jitter to retry delays."
+    }
+  ],
+  "personas": [
+    {
+      "id": "persona-0",
+      "name": "First-time integrator",
+      "summary": "Needs the concept explained before the specifics.",
+      "dimensions": ["Content", "Context"]
+    },
+    {
+      "id": "persona-1",
+      "name": "Experienced API developer",
+      "summary": "Wants the exact status code and header name.",
+      "dimensions": ["Content", "Trust"]
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic-1",
+      "name": "Introduction",
+      "metadata": {},
+      "content": "The {{api_name}} enforces rate limits to protect shared capacity.",
+      "sourceOverride": null,
+      "children": [
+        {
+          "id": "topic-1a",
+          "name": "What counts as a request",
+          "metadata": {},
+          "content": "Every HTTP call to the API counts as one request.",
+          "sourceOverride": ["src-a"],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "topic-2",
+      "name": "Handling 429 responses",
+      "metadata": {},
+      "content": "When a limit is exceeded the API returns a 429 status and an X-RateLimit-Reset header.",
+      "sourceOverride": null,
+      "children": [
+        {
+          "id": "topic-2a",
+          "name": "Backing off",
+          "metadata": {},
+          "content": "Clients should honor Retry-After and back off exponentially.",
+          "sourceOverride": ["src-b"],
+          "children": [
+            {
+              "id": "topic-2a-i",
+              "name": "Jitter",
+              "metadata": {},
+              "content": "Add random jitter to retry delays to avoid thundering herds.",
+              "sourceOverride": ["src-b"],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+persona.catalog:
+  macro:
+    systemName: "persona.catalog"
+    domain: "content governance"
+    intent: >
+      Hold the publication's shared personas — the exact same
+      constraints as apps/phase-0-single-topic's persona model,
+      applied at the publication level instead of the single-topic
+      level.
+    mustNever:
+      - "Allow more than 2 personas in a publication"
+      - "Derive a persona's id from its name — id is positional,
+         assigned at creation, per persona-id-is-positional below"
+  meso:
+    personas:
+      - id: author
+        doing: "Authors up to two personas, shared across every topic in the publication"
+    fields:
+      personas: "list of {id, name, summary, dimensions[]} — max 2"
+  micro:
+    - id: max-two-personas
+      rule: "Identical to phase-0-single-topic: no third persona may be added."
+    - id: five-fixed-dimensions
+      rule: >
+        Dimensions are drawn only from this spec's own
+        system.yaml contentScope.fixedDimensions list (Surface,
+        Content, Context, Time, Trust) — the same canonical list
+        phase-0-single-topic uses, restated here as its own
+        authority for this app rather than cross-referencing the
+        other app's file.
+    - id: persona-id-is-positional
+      rule: >
+        Identical rule to phase-0-single-topic's
+        state.topic-refraction: the first persona authored is
+        "persona-0", the second is "persona-1". Assigned once, never
+        changes even if name/summary is later edited.
+    - id: publication-level-not-per-topic
+      rule: >
+        Personas are authored once, in Panel 1's Personas section,
+        and apply to every topic in the publication — there is no
+        per-topic persona list in this phase.

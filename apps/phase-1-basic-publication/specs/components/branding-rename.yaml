@@ -1,0 +1,23 @@
+branding.rename:
+  macro:
+    systemName: "branding.rename"
+    domain: "presentation layout"
+    intent: >
+      Ensure the app's displayed name and tagline consistently use
+      build-config.yaml's values — never hardcoded or a leftover
+      prior name. Identical mechanism to phase-0-single-topic.
+    mustNever:
+      - "Hardcode a product name anywhere in this component's logic"
+      - "Leave a prior product name anywhere in the built app"
+  meso:
+    personas:
+      - id: user
+        doing: "Sees the app's name in the header/title, consistently"
+    configSource: "build-config.yaml -> branding.productName, branding.tagline"
+  micro:
+    - id: scan-for-prior-names
+      rule: "Search for any hardcoded prior product name per build-config.yaml's branding.priorNames before renaming; report every occurrence found."
+    - id: single-source-of-truth
+      rule: "The product name is read from build-config.yaml, never duplicated as a literal string elsewhere."
+    - id: report-changes
+      rule: "Every file changed by the rename is reported so it can be verified."

@@ -1,0 +1,45 @@
+topic.hierarchy:
+  macro:
+    systemName: "topic.hierarchy"
+    domain: "content governance"
+    intent: >
+      Hold and manipulate the publication's topics as an arbitrary-
+      depth tree — never a flat list, never an assumed depth.
+    mustNever:
+      - "Assume or hardcode a maximum depth for the topic tree"
+      - "Let 'move up' or 'move down' change a topic's parent — these
+         actions reorder among siblings only"
+      - "Let deleting a topic silently orphan or delete its children
+         without the author being told what will be removed"
+  meso:
+    personas:
+      - id: author
+        doing: "Adds, deletes, reorders, and nests topics freely"
+    fields:
+      topics: "tree of {id, name, metadata, content, sourceOverride[]?, children[]}"
+  micro:
+    - id: recursive-not-fixed-depth
+      rule: >
+        The tree structure supports children at any node, to any
+        depth. No component may assume "topics are flat" or "topics
+        have at most N levels" anywhere in the spec.
+    - id: add-child-topic
+      rule: >
+        "Add child topic" on any existing topic creates a new topic
+        nested one level beneath it, appended as the last child.
+    - id: move-reorders-siblings-only
+      rule: >
+        "Move up" / "move down" swaps a topic with its immediate
+        sibling in that direction. If there is no sibling in that
+        direction (already first/last), the action is a no-op, not
+        an error.
+    - id: delete-warns-about-children
+      rule: >
+        Deleting a topic that has children shows the author how many
+        descendant topics will also be removed, before the delete is
+        confirmed.
+    - id: topic-id-is-stable
+      rule: >
+        Each topic's id is assigned once, at creation, and never
+        changes — including when the topic is moved among siblings
+        or has children added/removed.

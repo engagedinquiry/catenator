@@ -1,0 +1,30 @@
+{
+  "name": "catenator-phase-1-basic-publication",
+  "version": "0.0.0",
+  "description": "Catenator — Creating and Refracting, Basic Publication. Phase 1: a topic hierarchy of arbitrary depth, shared sources with per-topic override, up to two personas, publication-level variables, and one-action publication-wide refraction (BYOK).",
+  "private": true,
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "node tests/run.mjs",
+    "verify:refraction": "node --experimental-strip-types --import ./tests/register.mjs scripts/verify-refraction.mjs"
+  },
+  "dependencies": {
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.4",
+    "@angular/cli": "^22.1.4",
+    "@angular/compiler-cli": "^22.1.0",
+    "typescript": "~6.0.2"
+  }
+}

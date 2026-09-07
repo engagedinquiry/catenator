@@ -1,0 +1,25 @@
+guide.static-per-selection:
+  macro:
+    systemName: "guide.static-per-selection"
+    domain: "presentation layout"
+    intent: >
+      Show fixed, pre-written instructional text in Panel 3's Guide
+      tab, chosen by which of the five selection types is active in
+      Panel 1. Not generated, not reactive to actual content.
+    mustNever:
+      - "Generate Guide content dynamically or react to the specific
+         content being edited in this phase — that is explicitly a
+         future-phase capability, not built here"
+  meso:
+    personas:
+      - id: author
+        doing: "Reads static guidance matching whichever item type is currently selected"
+    content:
+      selectionTypes: ["Publication metadata", "Topic", "Variables", "Sources", "Personas"]
+      blocksPerType: "exactly one pre-written block per type — five total"
+  micro:
+    - id: five-fixed-blocks
+      rule: >
+        There are exactly five Guide text blocks, one per selection
+        type. No sixth block, no per-topic variation within the
+        "Topic" type.

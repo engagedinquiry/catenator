@@ -1,0 +1,38 @@
+{
+  "_note": "Expected derived facts for publication.json — asserted by tests/fixture-parity.test.mjs.",
+  "flattenedTopicIdsInOrder": ["topic-1", "topic-1a", "topic-2", "topic-2a", "topic-2a-i"],
+  "maxDepthObserved": 3,
+  "resolvedSourceIdsByTopic": {
+    "topic-1": ["src-a", "src-b"],
+    "topic-1a": ["src-a"],
+    "topic-2": ["src-a", "src-b"],
+    "topic-2a": ["src-b"],
+    "topic-2a-i": ["src-b"]
+  },
+  "referencedVariablesByTopic": {
+    "topic-1": ["api_name"],
+    "topic-1a": [],
+    "topic-2": [],
+    "topic-2a": [],
+    "topic-2a-i": []
+  },
+  "danglingOverrideIdsByTopic": {
+    "topic-1": [],
+    "topic-1a": [],
+    "topic-2": [],
+    "topic-2a": [],
+    "topic-2a-i": []
+  },
+  "qualityCheck": {
+    "metadata-completeness": true,
+    "source-reference-resolution": true,
+    "variable-resolution": true,
+    "persona-exists": true,
+    "refractionAllowed": true
+  },
+  "refraction": {
+    "topics": 5,
+    "personas": 2,
+    "expectedCallCount": 10
+  }
+}

@@ -1,0 +1,31 @@
+quality-check.four-checks:
+  macro:
+    systemName: "quality-check.four-checks"
+    domain: "content governance"
+    intent: >
+      Run four validation checks against the publication, shown in
+      Panel 3's Quality Check tab, catching gaps that aren't enforced
+      live while authoring.
+    mustNever:
+      - "Enforce any of these four checks live, while typing — they
+         run only when Quality Check is explicitly run"
+      - "Allow refraction to run if the persona-exists check fails"
+  meso:
+    personas:
+      - id: author
+        doing: "Runs Quality Check before refracting; fixes whatever it flags"
+    checks:
+      - id: metadata-completeness
+        rule: "Every topic has at least a name filled in."
+      - id: source-reference-resolution
+        rule: "Every id in every topic's sourceOverride resolves to a real source in the publication's source list."
+      - id: variable-resolution
+        rule: "Every {{variable_name}} referenced inside any topic's content is defined in the publication's Variables list."
+      - id: persona-exists
+        rule: "At least one persona exists in the publication before refraction is allowed to run."
+  micro:
+    - id: check-report-is-per-item
+      rule: >
+        A failed check names the specific topic, source id, variable
+        name, or persona gap responsible — never a generic "something
+        is wrong" message.
