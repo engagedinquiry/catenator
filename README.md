@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="./logo.png" alt="Catenator by Engaged Inquiry" width="100%">
+  <img src="./brand/logo.png" alt="Catenator by Engaged Inquiry" width="100%">
 </p>
 
 
