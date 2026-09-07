@@ -12,12 +12,12 @@ This isn't one document. It's six, because the same underlying idea looks differ
 
 ## Which one is you?
 
-- **Designing something — visual, written, or otherwise?** Start with [Creators](#creators).
-- **Writing user guides, references, or documentation for a product?** Start with [Tech writers](#tech-writers).
-- **Building an AI system to answer questions from a knowledge base, from scratch?** Start with [Knowledge teams](#knowledge-teams).
-- **Already writing ADRs, API contracts, and architecture docs, and want them to actually connect?** Start with [Engineers](#engineers).
-- **Adding AI answering on top of a product that already has real users, roles, and permissions?** Start with [Integrators](#integrators).
-- **Want the actual technical standard — the schema, the coordinate model, how governance and delivery work underneath all of this?** Start with [Governing docs](#governing-docs).
+- **Designing something — visual, written, or otherwise?** Start with [Creators](personas/1-creators/1-catenator-for-creators.md).
+- **Writing user guides, references, or documentation for a product?** Start with [Tech writers](personas/2-tech-writers/1-catenator-for-tech-writers.md).
+- **Building an AI system to answer questions from a knowledge base, from scratch?** Start with [Knowledge teams](personas/3-knowledge-teams/1-catenator-for-knowledge-teams.md).
+- **Already writing ADRs, API contracts, and architecture docs, and want them to actually connect?** Start with [Engineers](personas/5-engineers/1-catenator-for-engineers.md).
+- **Adding AI answering on top of a product that already has real users, roles, and permissions?** Start with [Integrators](personas/4-integrators/1-catenator-for-integrators.md).
+- **Want the actual technical standard — the schema, the coordinate model, how governance and delivery work underneath all of this?** Start with [Governing docs](personas/6-governing-docs/1-catenator.md).
 
 If none of these sound like you, this probably isn't for you yet — and that's fine.
 
@@ -35,7 +35,6 @@ For designers and writers governing intent the way design always used to, before
 
 ## Tech writers
 
-For writers who already know a user guide could be more than a static list of steps, and want it to actually work that way.
 
 - [Start here](personas/2-tech-writers/1-catenator-for-tech-writers.md)
 - [Governing document](personas/2-tech-writers/2-governing-document.md)
