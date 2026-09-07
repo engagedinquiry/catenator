@@ -2,33 +2,20 @@ delivery.request-response:
   macro:
     systemName: "delivery.request-response"
     domain: "reader-controlled delivery"
-    intent: "Return the correct file's content for a given topic + persona pair."
+    intent: "Return the correct file's content for the currently selected root + category + file."
     mustNever:
-      - "Return content for a persona/topic pair other than what was
-         requested"
-      - "Guess a persona if the reader hasn't explicitly chosen one —
-         require an explicit selection before delivering anything"
+      - "Return content other than what view.state currently has selected"
+      - "Read from or write to a URL — input comes directly from
+         view.state's activeRoot/selectedCategory/selectedFile"
   meso:
     personas:
       - id: reader
-        doing: "Requests content by topic id + persona id, both explicit"
+        doing: "Selects via UI; content pane updates from in-memory state"
     contractShape:
-      input: [topicId, personaId]
+      input: [activeRoot, selectedCategory, selectedFile]
       output: markdownContent
-      errorOutput: >
-        {type: not-available-for-persona, message} when
-        content.source's topicMap has null for this pair
   micro:
-    - id: both-explicit
+    - id: reads-from-state-not-url
       rule: >
-        Unlike a single-topic app, this reader app has multiple
-        topics AND multiple personas — both must be explicit reader
-        choices, always visible as two separate selectors (persona
-        switcher, topic list), never one implied by the other.
-    - id: default-on-load
-      rule: >
-        On first load, default topicId to "start" and personaId to
-        none-selected — the reader must actively pick a persona before
-        any persona-specific content is shown; the "start" topic's
-        content can still show generic framing before a persona is
-        chosen, if such framing exists.
+        This contract's inputs come directly from view.state's current
+        values — no URL to parse, no route params to extract.

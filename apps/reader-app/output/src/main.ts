@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { App } from './app/app';
 
-bootstrapApplication(App, appConfig).catch((err) => console.error(err));
+// view.state mustNever "Use Angular Router" — no provideRouter, no routes.
+bootstrapApplication(App).catch((err) => console.error(err));

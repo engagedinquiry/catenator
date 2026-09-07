@@ -1,54 +1,49 @@
-# Catenator Reader — One idea, read your way
+# Catenator Reader — Browse by persona, or view the schema
 
-A **Delivery-only** app: it reads governed content that already exists and lets a
-reader choose *which persona's version* to view, switching freely. No authoring,
-no refraction generation, no AI model calls.
+A **Delivery-only** app: it browses governed content that already exists. From
+a home page you pick one of two roots — **browse by persona** (`docs/content/`)
+or **view schema docs** (`docs/schema/`) — then a category (a subfolder), then a
+file. One generic folder-browsing mechanism serves both roots.
+
+**No routing.** Navigation is a single in-memory state variable, not a URL.
+**Nothing is hardcoded** — every persona, section, and filename shown is read
+from the actual folder/file names on disk.
 
 Built from `apps/reader-app/specs/` per `apps/shared/BUILD_INSTRUCTIONS.md`.
-Everything is in-memory: every visit starts with no persona selected.
 
 ## Run
 
 ```
 npm install
-npm run sync:content   # mirror docs/ into src/assets/content/ (see below)
-npm start              # dev server on http://localhost:4200
-npm test               # 21 assertions over the deterministic core
+npm start        # dev server on http://localhost:4200 (runs build:manifest first)
+npm test         # 15 assertions
 npm run build
 ```
 
-## Content
+`npm run build:manifest` (a `pre*` step of start/build/test) scans
+`docs/content/` and `docs/schema/` and writes `src/assets/content/manifest.json`
+plus a copy of every file. Re-run it after changing anything under `docs/`.
 
-`build-config.yaml` → `contentSource.rootDir` is `docs` (repo-relative,
-`mode: pre-authored`). The browser can't read the repo tree, so
-`scripts/sync-content.mjs` copies the six persona folders plus the schema
-reference folder into `src/assets/content/`, and
-`src/app/core/build-config.ts` (`CONTENT_ROOT`) is the single place that path is
-named. Re-run `npm run sync:content` after editing anything under `docs/`.
+## The four states (`view.state`)
 
-## Routes
+| State | Shows | Reached by |
+|---|---|---|
+| `home` | Two options | initial |
+| `categoryList` | Subfolders of the chosen root | clicking an option |
+| `fileList` | Files in the chosen subfolder | clicking a category |
+| `content` | The chosen file, rendered | clicking a file |
 
-| URL | Renders |
+Back is via explicit controls only (breadcrumb links, the rail logo = Home) —
+no browser-back support, by spec.
+
+## Spec → code
+
+| Component | Implementation |
 |---|---|
-| `/` | `docs/README.md` itself — the "which one is you?" landing page. Its persona links route *into* the app (e.g. `[Engineers](engineers/README.md)` → `/engineers`), never to raw markdown. Single column, no persona selected. |
-| `/:personaId` | That persona's topic list (fixed-width, left) + their `start` topic in the content pane. Top bar carries the branding and the persona **dropdown**. |
-| `/:personaId/:topicId` | A specific topic for that persona. A topic with no file for that persona shows **Not covered**, never a blank page. |
-| `/standard` | The Catenator standard itself — one canonical reference, identical for every persona. |
-
-All routes are real, bookmarkable URLs. Switching persona in the dropdown keeps
-the current topic (`/:newPersona/:sameTopic`). Nothing about the reader is
-inferred — the persona in the URL is the only persona used.
-
-## Spec → code map
-
-| Component spec | Implementation |
-|---|---|
-| `persona-catalog.yaml` | `src/app/core/persona-catalog.ts` — the fixed six, literal list |
-| `content-source.yaml` | `src/app/core/content-source.ts` — `TOPIC_MAP`, `fileFor()`, `STANDARD_REFERENCE` |
-| `delivery-request-response.yaml` | `src/app/core/delivery.ts` — `deliver({topicId, personaId})` |
-| `style-visual-theme.yaml` | `src/styles.css` + `src/app/ui/*` — Catenator design system, selected = filled |
-| `layout-reader-shell.yaml` | `src/app/pages/persona-page.ts` — top bar + fixed-width topic list + content pane |
-| `navigation-routes.yaml` | `src/app/app.routes.ts` + `src/app/pages/home-page.ts` + `content-source.ts` link resolution |
-| `branding-rename.yaml` (not in this app's spec set; Phase 0 pattern applied) | `src/app/brand/brand.ts` — sole source of the product name |
+| `content-folder-browser.yaml` | `scripts/build-manifest.mjs` (the scan) + `src/app/core/folder-browser.ts` (reads the manifest, one code path for both roots) |
+| `view-state.yaml` | `src/app/state/view-state.ts` — `current` + `activeRoot` / `selectedCategory` / `selectedFile`, all set by click handlers |
+| `delivery-request-response.yaml` | `src/app/core/delivery.ts` — `deliver(browser, root, category, file)` |
+| `style-visual-theme.yaml` | `src/styles.css` + `src/app/ui/*` — shared Catenator design system, selected item = filled |
+| `branding-rename.yaml` | `src/app/brand/brand.ts` — single product-name literal |
 
 See `BUILD_REPORT.md` for the per-component mustNever / micro verification.

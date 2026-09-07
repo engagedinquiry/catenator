@@ -3,5 +3,5 @@ dist/
 .angular/
 *.log
 
-# Synced from docs/ by scripts/sync-content.mjs — docs/ is the source of truth.
+# generated from docs/ by scripts/build-manifest.mjs
 src/assets/content/

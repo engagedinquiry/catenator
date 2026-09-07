@@ -1,12 +1,12 @@
 vocabulary:
   - term: "reader-controlled delivery"
     definition: >
-      A delivery mode where the reader chooses which persona's
-      shaping to view, on demand, rather than the system deciding for
-      them based on a tracked profile. The reader's choice IS the
-      persona selection — nothing is inferred about who they are.
+      A delivery mode where the reader chooses what to view, on
+      demand, rather than the system deciding for them based on a
+      tracked profile. The reader's clicks ARE the selection —
+      nothing is inferred.
   - term: "governed source content"
     definition: >
       Content that already exists as an authored, structured
-      document — not generated on the fly by this app. This app reads
-      and delivers it; it does not author or refract new content.
+      document — not generated on the fly by this app. This app
+      browses and delivers it; it does not author or refract anything.

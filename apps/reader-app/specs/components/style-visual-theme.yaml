@@ -4,23 +4,20 @@ style.visual-theme:
     domain: "presentation layout"
     intent: >
       Apply the same visual style used across all Catenator apps
-      (icons, colors, badge/selector states) to this app's actual UI
-      — persona switcher, topic list, content pane — not the step-
-      wizard layout Phase 0 uses, which this app doesn't have.
+      (icons, colors, selector states) to this app's actual UI —
+      home options, category list, file list, content pane.
     mustNever:
-      - "Change any content-loading logic, persona catalog, or
-         delivery contract as part of this styling pass"
+      - "Change any content-loading logic, folder-browsing behavior,
+         or delivery contract as part of this styling pass"
       - "Import or create a live dependency on the reference
          application's codebase — copy visual values/assets only"
       - "Introduce a new icon library or dependency without first
          checking whether the reference application already uses one
          that can be reused"
-      - "Apply Phase 0's step-nav-specific rules (completed/active/
-         upcoming step states) to this app — there are no steps here"
   meso:
     personas:
       - id: reader
-        doing: "Views persona switcher, topic list, and content consistently styled"
+        doing: "Views a consistently styled home, category list, file list, and content pane"
     reference:
       path: "C:\\Users\\parth\\ei\\eisyntaxia_repos\\syntaxia-studio"
       access: "read-only — inspect for styling values and assets, do not modify or import live"
@@ -28,24 +25,20 @@ style.visual-theme:
         - "CSS/styling approach used — global stylesheet, component-
            scoped styles, a CSS framework, CSS variables/theme file"
         - "Icon set/library used (package name, or custom SVG assets)"
-        - "Selector/list-item styling: border weight, corner radius,
-           spacing, and color per state (selected / unselected /
-           hover)"
+        - "List-item styling: border weight, corner radius, spacing,
+           and color per state (selected / unselected / hover)"
         - "General color palette and typography, consistent with
            every other Catenator app"
   micro:
     - id: report-before-applying
       rule: >
         Before making any visual changes, report what was found in
-        the reference application, same as Phase 0's styling pass did.
+        the reference application.
     - id: apply-to-reader-ui-elements
       rule: >
-        Apply the extracted style to this app's actual UI: the
-        persona switcher (six options, one selected at a time), the
-        topic list, and the content pane rendering markdown. Use the
-        same selected/unselected treatment Phase 0 uses for completed/
-        active step states (filled background for selected), adapted
-        to a switcher rather than a step sequence.
+        Apply the extracted style to this app's actual UI: the two
+        home options, the category list, the file list, and the
+        content pane.
     - id: standalone-styling
       rule: >
         All copied styling values and icon assets must be committed

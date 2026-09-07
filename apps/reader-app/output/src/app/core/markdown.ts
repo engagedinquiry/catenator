@@ -1,13 +1,13 @@
 /**
  * Minimal, dependency-free markdown -> HTML renderer.
  *
- * The reference application (syntaxia-studio) ships no markdown library, and
  * style.visual-theme.mustNever forbids adding a dependency without first
- * checking the reference — so this is a small hand-rolled renderer covering the
- * constructs actually used by the governed docs: ATX headings, paragraphs,
- * unordered / ordered lists, fenced code blocks, blockquotes, horizontal rules,
- * and inline code / bold / italic / links. All text is HTML-escaped first, so
- * raw HTML in a source file is shown literally, never executed.
+ * checking the reference app (syntaxia-studio ships no markdown library) — so
+ * this is a small hand-rolled renderer: ATX headings, paragraphs, lists, fenced
+ * code, blockquotes, rules, inline code / bold / italic / links. All text is
+ * HTML-escaped first; raw block-level HTML lines are dropped.
+ *
+ * Non-markdown files (.yaml, .txt, …) are shown verbatim via renderPlain().
  */
 
 function esc(s: string): string {
@@ -20,15 +20,9 @@ function esc(s: string): string {
 
 function inline(s: string): string {
   let out = esc(s);
-  // inline code first so its contents are not further formatted
   out = out.replace(/`([^`]+)`/g, (_m, c) => `<code>${c}</code>`);
   out = out.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_m, alt, src) => `<img alt="${alt}" src="${src}">`);
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, txt, href) => {
-    // Preserve the href as authored — bare relative paths ("creators/README.md"),
-    // "#anchors", http(s):, and mailto: all pass through. Only dangerous URL
-    // schemes are neutralised. HomePage's click handler turns the persona links
-    // into internal routes (navigation.routes: active link interception); it can
-    // only do that if the real target survives to the DOM.
     const scheme = href.match(/^\s*([a-z][a-z0-9+.-]*):/i);
     const dangerous = scheme && !/^(https?|mailto)$/i.test(scheme[1]);
     const safe = dangerous ? '#' : href;
@@ -41,10 +35,14 @@ function inline(s: string): string {
   return out;
 }
 
-/** Strip a leading YAML frontmatter block (`---` … `---`) if present. */
 function stripFrontmatter(md: string): string {
   const m = md.match(/^﻿?---\n[\s\S]*?\n---\n?/);
   return m ? md.slice(m[0].length) : md;
+}
+
+/** Verbatim rendering for non-markdown files. */
+export function renderPlain(text: string): string {
+  return `<pre class="code plain"><code>${esc(text)}</code></pre>`;
 }
 
 export function renderMarkdown(md: string): string {
@@ -60,7 +58,6 @@ export function renderMarkdown(md: string): string {
   while (i < lines.length) {
     const line = lines[i];
 
-    // fenced code block
     const fence = line.match(/^```(.*)$/);
     if (fence) {
       closeLists();
@@ -68,32 +65,25 @@ export function renderMarkdown(md: string): string {
       const buf: string[] = [];
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
-      i++; // closing fence
+      i++;
       html.push(
         `<pre class="code"${lang ? ` data-lang="${esc(lang)}"` : ''}><code>${esc(buf.join('\n'))}</code></pre>`
       );
       continue;
     }
 
-    // blank line
     if (/^\s*$/.test(line)) {
       closeLists();
       i++;
       continue;
     }
 
-    // drop a line that is nothing but a raw block-level HTML tag (opening or
-    // closing wrapper, or a bare <img> banner). The governed docs open with a
-    // <p align><img></p> logo block that has no place in the app chrome; the
-    // text renderer stays HTML-safe (inline tags in prose are still escaped),
-    // and markdown image syntax ![alt](src) still works via inline().
     if (/^\s*<\/?(p|div|span|section|figure|picture|source|br|hr|img)\b[^>]*>\s*$/i.test(line)) {
       closeLists();
       i++;
       continue;
     }
 
-    // horizontal rule
     if (/^(\s*[-*_]){3,}\s*$/.test(line)) {
       closeLists();
       html.push('<hr>');
@@ -101,17 +91,14 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
-    // heading
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       closeLists();
-      const level = h[1].length;
-      html.push(`<h${level}>${inline(h[2].trim())}</h${level}>`);
+      html.push(`<h${h[1].length}>${inline(h[2].trim())}</h${h[1].length}>`);
       i++;
       continue;
     }
 
-    // blockquote
     if (/^>\s?/.test(line)) {
       closeLists();
       const buf: string[] = [];
@@ -120,7 +107,6 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
-    // list item
     const li = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
     if (li) {
       const ordered = /\d+\./.test(li[2]);
@@ -135,7 +121,6 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
-    // paragraph (gather until blank / block start)
     closeLists();
     const buf: string[] = [];
     while (
@@ -151,4 +136,9 @@ export function renderMarkdown(md: string): string {
 
   closeLists();
   return html.join('\n');
+}
+
+/** Pick the renderer by file extension. */
+export function renderFile(name: string, text: string): string {
+  return /\.(md|markdown)$/i.test(name) ? renderMarkdown(text) : renderPlain(text);
 }

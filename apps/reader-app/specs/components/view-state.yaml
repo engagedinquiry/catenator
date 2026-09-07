@@ -1,0 +1,45 @@
+view.state:
+  macro:
+    systemName: "view.state"
+    domain: "reader-controlled delivery"
+    intent: >
+      Switch between four states using a single in-app state variable
+      — no Angular Router, no URL paths.
+    mustNever:
+      - "Use Angular Router, path parameters, or any URL-based
+         navigation"
+      - "Require any markdown link parsing or interception — all
+         navigation happens through UI controls wired directly to the
+         state variable"
+  meso:
+    personas:
+      - id: reader
+        doing: "Clicks a UI control; the app's current state updates immediately, in memory"
+    states:
+      - id: home
+        default: true
+        shows: >
+          Two options: "Browse by persona" (sets activeRoot to
+          "content/") and "View schema docs" (sets activeRoot to
+          "schema/"). Selecting either moves to categoryList.
+      - id: categoryList
+        entered: "After a root is chosen from home"
+        shows: "The subfolders of activeRoot, via content.folder-browser"
+      - id: fileList
+        entered: "After a category (subfolder) is selected"
+        shows: "The files inside the selected subfolder"
+      - id: content
+        entered: "After a file is selected"
+        shows: "That file's rendered content"
+  micro:
+    - id: single-state-variable
+      rule: >
+        One variable (e.g. currentState) holds which of the four
+        states is active, plus activeRoot, selectedCategory, and
+        selectedFile as it drills down. All direct assignments from
+        click handlers.
+    - id: back-navigation-is-explicit-controls
+      rule: >
+        No browser back-button support required. Returning to a prior
+        state happens only via explicit UI controls (a "Home" button,
+        a "back to categories" link, etc.).

@@ -1,23 +1,23 @@
 {
   "name": "catenator-reader-app",
   "version": "0.0.0",
-  "description": "Catenator Reader — One idea, read your way. Reader-controlled delivery of governed content (Delivery-only, no authoring).",
+  "description": "Catenator Reader — browse governed content by persona, or view the schema. Generic folder browser, no routing.",
   "private": true,
   "scripts": {
     "ng": "ng",
+    "prestart": "npm run build:manifest",
     "start": "ng serve",
+    "prebuild": "npm run build:manifest",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "sync:content": "node scripts/sync-content.mjs",
+    "build:manifest": "node scripts/build-manifest.mjs",
+    "pretest": "npm run build:manifest",
     "test": "node tests/run.mjs"
   },
   "dependencies": {
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",
-    "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
-    "@angular/router": "^22.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

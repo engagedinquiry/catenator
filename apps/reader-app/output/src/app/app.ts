@@ -1,28 +1,71 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { BRAND, BRAND_TITLE } from './brand/brand';
+import { BRAND, BRAND_LINE, BRAND_TITLE } from './brand/brand';
+import { FolderBrowser } from './core/folder-browser';
+import { ViewState } from './state/view-state';
 import { AppIcon } from './ui/app-icon';
+import { HomeView } from './ui/home-view';
+import { ListView } from './ui/list-view';
+import { ContentView } from './ui/content-view';
 
 /**
- * The app shell is just the utility rail + the routed page. layout.reader-shell
- * (top bar with the persona dropdown, fixed-width topic list, content pane)
- * lives in PersonaPage — navigation.routes micro.layout-applies-below-home: the
- * home route uses its own simpler single-column rendering.
+ * The whole shell. There is no router — `state.current()` decides which view
+ * renders (view.state). The rail + top bar are constant; everything below
+ * switches on the single state variable.
  */
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, AppIcon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AppIcon, HomeView, ListView, ContentView],
   template: `
     <div class="studio-shell">
       <nav class="rail">
-        <a class="rail-btn logo-btn" routerLink="/" [title]="brand.productName">
+        <button type="button" class="rail-btn" [title]="brand.productName" (click)="state.goHome()">
           <app-icon name="icon-catenator-logo" [size]="24" />
-        </a>
+        </button>
       </nav>
+
       <div class="shell-main">
-        <router-outlet />
+        <header class="shell-topbar">
+          <span class="topbar-brand">{{ brandLine }}</span>
+        </header>
+
+        <div class="workspace">
+          @if (!browser.ready() && browser.error()) {
+            <div class="pane-state">
+              <h2>Could not load the content index</h2>
+              <p>{{ browser.error() }}</p>
+            </div>
+          } @else {
+            @switch (state.current()) {
+              @case ('home') {
+                <app-home-view />
+              }
+              @case ('categoryList') {
+                <app-list-view
+                  [heading]="categoryHeading()"
+                  [items]="state.categories()"
+                  [selected]="state.selectedCategory()"
+                  (pick)="state.chooseCategory($event)"
+                  (home)="state.goHome()" />
+              }
+              @case ('fileList') {
+                <app-list-view
+                  [heading]="state.selectedCategory() ?? ''"
+                  [items]="state.files()"
+                  [selected]="state.selectedFile()"
+                  [parentLabel]="state.activeRoot()"
+                  (pick)="state.chooseFile($event)"
+                  (back)="state.backToCategories()"
+                  (home)="state.goHome()" />
+              }
+              @case ('content') {
+                <app-content-view />
+              }
+            }
+          }
+        </div>
       </div>
     </div>
   `,
@@ -39,14 +82,37 @@ import { AppIcon } from './ui/app-icon';
         padding: 16px 0;
         box-sizing: border-box;
       }
-      .rail-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: #ffffff; }
+      .rail-btn {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        color: #ffffff;
+      }
+      .workspace { flex: 1; min-height: 0; overflow-y: auto; background: var(--panel-bg); }
     `
   ]
 })
-export class App {
+export class App implements OnInit {
   readonly brand = BRAND;
+  readonly brandLine = BRAND_LINE;
+  readonly state = inject(ViewState);
+  readonly browser = inject(FolderBrowser);
+
+  // Generic: the heading is just the chosen root's own name — no per-root label
+  // table, nothing about personas or sections hardcoded.
+  readonly categoryHeading = computed(() => (this.state.activeRoot() ?? '').replace(/\/$/, ''));
 
   constructor() {
     inject(Title).setTitle(BRAND_TITLE);
+  }
+
+  ngOnInit(): void {
+    void this.browser.load();
   }
 }

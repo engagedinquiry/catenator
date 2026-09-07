@@ -1,43 +1,38 @@
 systemName: "Catenator Reader"
 domain: "reader-controlled delivery"
 intent: >
-  Let a reader select which persona's version of governed content
-  they want to view, and switch between personas freely — a Delivery-
-  only app. No authoring, no refraction generation: the app reads
-  existing governed content and lets the reader choose how to
-  receive it.
+  A home page offering two entry points — browse by persona, or view
+  the schema docs — both served by one generic folder-browsing
+  mechanism. No persona names, topic names, or filenames are hardcoded
+  anywhere. No URL routing.
 mustNever:
   - "Generate or modify content — this app only reads and delivers
      what already exists"
-  - "Infer a persona for the reader — the reader always chooses
-     explicitly, every time"
-  - "Track the reader's choice across sessions in a way that decides
-     future content on their behalf — each visit starts with an
-     explicit choice"
+  - "Use URL-based routing (Angular Router, path params) — use a
+     single in-app view-state variable instead"
+  - "Hardcode a persona name, topic name, or filename anywhere in the
+     spec — everything shown is read from actual folder/file names"
+  - "Treat browsing docs/content/ and docs/schema/ as needing
+     different logic — both use the same folder-browsing component"
 contentScope:
   inScope:
-    - "Reading the schema reference folder (the Catenator standard
-       itself: founding statement, descriptors, views, -ilities,
-       YAML format)"
-    - "Switching between the personas already defined under the
-       content source root — Creators, Tech writers, Knowledge
-       teams, Integrators, Engineers, Governing docs"
+    - "Home: two options — browse by persona (docs/content/), or view
+       schema docs (docs/schema/)"
+    - "Category list: subfolders of whichever root was chosen"
+    - "File list: files inside the selected subfolder"
+    - "Content view: the selected file's rendered content"
   excluded:
-    - "Authoring or editing content"
-    - "Generating a new persona not already defined in the content
-       source"
-    - "Live refraction/generation via an AI model — this app delivers
-       what's already written, per persona, not generated fresh"
+    - "URL routing of any kind"
+    - "Authoring, editing, or generating content"
+    - "Any hardcoded list of personas, topics, or filenames"
 personas:
   - id: reader
     accessScope: read-only
-    doing: "Selects a persona and a topic, reads the delivered content, switches freely"
+    doing: "Picks a root, then a category, then a file — all via simple in-app state"
 
 components:
-  - ref: components/persona-catalog.yaml
-  - ref: components/content-source.yaml
+  - ref: components/content-folder-browser.yaml
+  - ref: components/view-state.yaml
   - ref: components/delivery-request-response.yaml
   - ref: components/style-visual-theme.yaml
   - ref: components/branding-rename.yaml
-  - ref: components/layout-reader-shell.yaml
-  - ref: components/navigation-routes.yaml

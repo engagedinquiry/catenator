@@ -1,66 +1,36 @@
+import type { FolderBrowser } from './folder-browser';
+
 /**
- * delivery.request-response — return the correct file's content for a given
- * topic + persona pair.
+ * delivery.request-response — return the file's content for the currently
+ * selected root + category + file.
  *
- * contractShape:
- *   input:  { topicId, personaId }   (both explicit — micro.both-explicit)
- *   output: { kind: 'content', markdown }
- *   error:  { kind: 'not-available-for-persona', message }
- *           { kind: 'no-persona-selected', message }
- *           { kind: 'not-found', message }
+ * contractShape: input [activeRoot, selectedCategory, selectedFile] -> markdownContent
  *
  * mustNever:
- *  - "Return content for a persona/topic pair other than what was requested"
- *     -> the url comes solely from content-source.fileFor(topicId, personaId).
- *  - "Guess a persona if the reader hasn't explicitly chosen one"
- *     -> personaId === null short-circuits to {kind:'no-persona-selected'}.
+ *  - "Return content other than what view.state currently has selected" -> the
+ *     URL is built only from the three passed-in values, via FolderBrowser.
+ *  - "Read from or write to a URL" (as navigation) -> no route params; the
+ *     inputs come straight from view.state (micro.reads-from-state-not-url).
  */
-import { fileFor, topicById } from './content-source';
-
-export interface DeliveryRequest {
-  topicId: string;
-  /** null until the reader explicitly picks a persona. */
-  personaId: string | null;
-}
-
-export type DeliveryResponse =
-  | { kind: 'content'; markdown: string }
-  | { kind: 'no-persona-selected'; message: string }
-  | { kind: 'not-available-for-persona'; message: string }
-  | { kind: 'not-found'; message: string };
+export type DeliveryResult =
+  | { ok: true; text: string; file: string }
+  | { ok: false; message: string };
 
 export async function deliver(
-  req: DeliveryRequest,
+  browser: FolderBrowser,
+  root: string,
+  category: string,
+  file: string,
   fetchText: (url: string) => Promise<string> = defaultFetchText
-): Promise<DeliveryResponse> {
-  const topic = topicById(req.topicId);
-  if (!topic) {
-    return { kind: 'not-found', message: `Unknown topic "${req.topicId}".` };
+): Promise<DeliveryResult> {
+  if (!root || !category || !file) {
+    return { ok: false, message: 'Nothing selected.' };
   }
-
-  if (req.personaId === null) {
-    return {
-      kind: 'no-persona-selected',
-      message: 'Choose a persona to read this topic.'
-    };
-  }
-
-  const lookup = fileFor(req.topicId, req.personaId);
-  if (!lookup.available) {
-    return {
-      kind: 'not-available-for-persona',
-      message: `"${topic.label}" is not covered for this persona.`
-    };
-  }
-
   try {
-    const markdown = await fetchText(lookup.url);
-    return { kind: 'content', markdown };
+    const text = await fetchText(browser.fileUrl(root, category, file));
+    return { ok: true, text, file };
   } catch {
-    return {
-      kind: 'not-found',
-      message: `"${topic.label}" is listed for this persona but its file could not be loaded.`
-    };
+    return { ok: false, message: `Could not load ${category}/${file}.` };
   }
 }
 
