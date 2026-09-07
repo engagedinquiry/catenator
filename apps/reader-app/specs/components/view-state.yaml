@@ -5,22 +5,30 @@ view.state:
     intent: >
       The left nav panel always shows a Home button, the "Reading as"
       dropdown, and the "Schema docs" button together. Selecting a
-      persona shows that persona's topics and resets/hides the schema
-      button's active state. Clicking Schema docs does the reverse.
-      The currently open file (and its containing folder, if any) is
-      always visibly marked as selected.
+      persona immediately shows that persona's topic list directly
+      below the dropdown AND renders that persona's README.md in the
+      content pane — with no intermediate placeholder state. Clicking
+      Schema docs does the exact reverse, fully, with no remnant of
+      the other mode left visible anywhere.
     mustNever:
       - "Show both a persona's topic list AND the schema tree at the
-         same time — selecting one clears the other"
+         same time, at any point, even transiently during a
+         transition"
       - "Leave the dropdown or Schema docs button showing a stale
          active/selected state after the other one is activated"
       - "Leave the currently open file or folder unmarked in the nav
          panel — active-state indication is required at all times
          once something is open"
+      - "Show a 'pick a topic' placeholder in the content pane when a
+         README.md exists for the selected persona — the README's
+         content must render immediately upon persona selection"
+      - "Render the persona topic list anywhere other than directly
+         below the dropdown, or the schema tree anywhere other than
+         directly below the Schema docs button"
   meso:
     personas:
       - id: reader
-        doing: "Uses Home, the dropdown, or Schema docs; the panel below and content pane update; current selection stays visibly marked"
+        doing: "Uses Home, the dropdown, or Schema docs; the panel below and content pane update immediately and completely; current selection stays visibly marked"
     navPanelState:
       mode: "'none' | 'persona' | 'schema'"
       selectedPersonaId: "set when mode is 'persona'"
@@ -28,17 +36,24 @@ view.state:
     behavior:
       - "On load (Home): mode is 'none'. Dropdown unselected, Schema
          docs button unselected. Content pane shows docs/README.md."
-      - "Selecting a persona: mode becomes 'persona'. Schema docs
-         button's active state clears and its tree (if shown) hides.
-         That persona's flat topic list appears below the dropdown."
-      - "Clicking a topic: content pane shows that file. The topic is
-         marked selected in the nav panel."
-      - "Clicking Schema docs: mode becomes 'schema'. Dropdown resets
-         to unselected. Persona topic list is replaced by the schema
-         tree. Content pane clears until a schema file is clicked."
+      - "Selecting a persona: mode becomes 'persona', in one atomic
+         update — Schema docs button's active state clears, its tree
+         (if shown) is fully removed from the DOM (not just hidden),
+         that persona's flat topic list (including README.md, titled
+         by its H1) appears directly below the dropdown, AND the
+         content pane immediately renders that persona's README.md
+         content. No step in between shows a placeholder."
+      - "Clicking a topic: content pane shows that file, titled by its
+         H1. The topic is marked selected in the nav panel."
+      - "Clicking Schema docs: mode becomes 'schema', in one atomic
+         update — dropdown resets to unselected, the persona topic
+         list is fully removed from the DOM (not hidden beneath
+         anything), and the schema tree appears directly below the
+         Schema docs button. Content pane clears until a schema file
+         is clicked."
       - "Clicking a schema file (at any tree depth): content pane
-         shows it. That file, and its containing folder(s) in the
-         tree, are marked selected/expanded."
+         shows it, titled by its H1. That file, and its containing
+         folder(s) in the tree, are marked selected/expanded."
       - "Clicking Home: mode resets to 'none', dropdown and Schema
          docs button both reset to unselected, content pane returns
          to docs/README.md."
@@ -46,17 +61,26 @@ view.state:
     - id: mutual-exclusivity
       rule: >
         mode is a single value: 'none', 'persona', or 'schema'. The
-        nav panel's lower section renders based on mode alone.
+        nav panel's lower section renders based on mode alone, and the
+        previous mode's content is fully removed, not merely hidden
+        with CSS, before the new mode's content is added.
     - id: bidirectional-reset
       rule: >
         Activating the dropdown resets Schema docs' active state and
-        hides its tree. Activating Schema docs resets the dropdown to
-        unselected and hides the persona topic list. This must work in
-        both directions, not just one.
+        removes its tree. Activating Schema docs resets the dropdown
+        to unselected and removes the persona topic list. Both
+        directions are required, verified independently.
     - id: active-state-highlighting
       rule: >
         The currently selected persona (in the dropdown), the
-        currently open topic/file (in the list or tree), and any
-        containing folder in the schema tree, are all visibly
-        highlighted/marked as active at all times while something is
-        open. This is baseline expected navigation behavior.
+        currently open topic/file (in the list or tree, shown by its
+        H1 title), and any containing folder in the schema tree, are
+        all visibly highlighted/marked as active at all times while
+        something is open.
+    - id: readme-renders-immediately-on-persona-select
+      rule: >
+        Selecting a persona from the dropdown is sufficient, on its
+        own, to render that persona's README.md in the content pane —
+        this happens in the same action as populating the topic list,
+        not as a separate step requiring the reader to also click
+        README.md in the list.

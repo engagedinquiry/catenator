@@ -6,9 +6,7 @@ layout.shell:
       The actual structural page layout: a fixed-position left panel,
       full viewport height, always visible, containing Home/dropdown/
       Schema docs and whatever's below them. A content pane fills the
-      remaining width, scrolling independently. This is the one
-      component responsible for making "fixed left nav panel" real,
-      not just stated.
+      remaining width, scrolling independently.
     mustNever:
       - "Let the left panel scroll with the page, move position, or
          disappear at any viewport width above the mobile breakpoint"
@@ -28,18 +26,13 @@ layout.shell:
   micro:
     - id: left-panel-is-fixed
       rule: >
-        The left panel uses fixed positioning (or an equivalent
-        layout technique achieving the same effect) with a set width,
-        full viewport height. It does not scroll, move, or resize
-        based on content, above the mobile breakpoint defined in
-        ui.edge-cases.
+        The left panel uses fixed positioning with a set width, full
+        viewport height. It does not scroll, move, or resize based on
+        content, above the mobile breakpoint defined in ui.edge-cases.
     - id: content-pane-scrolls-independently
-      rule: >
-        The content pane scrolls on its own; scrolling it never moves
-        or affects the left panel.
+      rule: "The content pane scrolls on its own; scrolling it never moves or affects the left panel."
     - id: mobile-handoff
       rule: >
-        Below ui.edge-cases' mobile breakpoint, this component's fixed
-        left panel is what collapses behind the toggle control that
-        ui.edge-cases specifies — the two components' rules must
-        agree on the same breakpoint value.
+        Below ui.edge-cases' mobile breakpoint (768px), this
+        component's fixed left panel is what collapses behind the
+        toggle control that ui.edge-cases specifies.

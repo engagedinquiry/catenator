@@ -9,6 +9,8 @@
 export interface TreeNode {
   name: string;
   type: 'file' | 'folder';
+  /** a markdown file's first H1 (build-manifest.mjs), used as its display title. */
+  title?: string;
   children?: TreeNode[];
 }
 export interface RootConfig {
@@ -25,6 +27,17 @@ export interface Manifest {
 /** "2-descriptors" -> "descriptors"; "3.1-interface.md" -> "interface.md". */
 export function displayName(name: string): string {
   return name.replace(/^\d+(?:\.\d+)*[-.\s]+/, '') || name;
+}
+
+/**
+ * content.browser micro.title-from-h1-not-filename: the label shown for a node
+ * everywhere (nav entry, browser tab). A markdown file's first H1 wins; the
+ * fallback is the order-stripped filename with its extension dropped. Folders
+ * use the order-stripped folder name.
+ */
+export function displayTitle(node: TreeNode): string {
+  if (node.type === 'folder') return displayName(node.name);
+  return node.title ?? displayName(node.name).replace(/\.[^.]+$/, '');
 }
 
 /** Numeric sort by order prefix (2 before 10, 3.1 before 3.2); unprefixed last. */

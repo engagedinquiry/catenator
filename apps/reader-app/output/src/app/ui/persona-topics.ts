@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ContentBrowser, displayName } from '../core/content-browser';
+import { ContentBrowser, displayTitle } from '../core/content-browser';
 import type { TreeNode } from '../core/content-browser';
 import { ViewState } from '../state/view-state';
 
@@ -27,7 +27,7 @@ import { ViewState } from '../state/view-state';
               class="row"
               [class.active]="state.isActivePath('persona', [persona(), n.name])"
               (click)="state.openNode('personas', [persona()], n)">
-              {{ label(n.name) }}
+              {{ title(n) }}
             </button>
           </li>
         }
@@ -67,7 +67,7 @@ export class PersonaTopics {
     if (!p) return [];
     return (this.browser.children('personas', [p]) ?? []).filter((n) => n.type === 'file');
   }
-  label(name: string): string {
-    return displayName(name);
+  title(node: TreeNode): string {
+    return displayTitle(node);
   }
 }

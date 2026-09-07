@@ -6,25 +6,26 @@ intent: >
   Catenator standard itself (schema/, via an expandable tree). One
   persistent left nav panel with Home, a "Reading as" dropdown, and a
   "Schema docs" button, always visible together, mutually exclusive
-  below. Real URLs mirroring the actual folder paths. No routing via
-  link interception. No content generation.
+  below. Selecting a persona immediately shows its topic list AND its
+  README content — no placeholder, no extra click. Every displayed
+  title is the file's own H1, never a raw filename. Real URLs
+  mirroring the actual folder paths. No routing via link interception.
+  No content generation.
 mustNever:
-  - "Generate, author, or edit content — this app only reads and
-     delivers what already exists under docs/"
-  - "Place the nav panel anywhere but a fixed left position, always
-     visible"
-  - "Hardcode a persona name, topic name, filename, or assumed folder
-     depth anywhere in the spec — everything is derived live from
-     docs/personas/ and docs/schema/"
+  - "Generate, author, or edit content"
+  - "Place the nav panel anywhere but a fixed left position, always visible"
+  - "Hardcode a persona name, topic name, filename, or assumed folder depth anywhere in the spec"
   - "Show a persona's topics and the schema tree at the same time"
+  - "Display a raw filename as a title anywhere in the UI when an H1 exists"
+  - "Show a placeholder in the content pane instead of a persona's README when one exists"
 contentScope:
   inScope:
     - "Home: docs/README.md content, plus Home/dropdown/Schema docs controls"
-    - "Personas: dropdown of docs/personas/ subfolders, each showing a flat topic list"
+    - "Personas: dropdown of docs/personas/ subfolders, each showing a flat topic list AND its README immediately"
     - "Schema: expandable tree of docs/schema/, arbitrary depth"
     - "Real URL routing mirroring folder paths"
-    - "Loading states, not-found handling, empty-folder messaging,
-       accessible controls, mobile-collapsible nav, safe external links"
+    - "File titles from H1, not filenames"
+    - "Loading states, not-found handling, empty-folder messaging, accessible controls, mobile-collapsible nav, safe external links"
   excluded:
     - "Authoring, editing, or generating content"
     - "Routing driven by parsing markdown links"

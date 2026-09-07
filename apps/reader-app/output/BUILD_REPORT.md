@@ -1,5 +1,29 @@
 # Build report — reader-app
 
+## Component update — content.browser + view.state (titles from H1, README-as-default)
+
+`RUN.md` scoped a run to `["components/content-browser.yaml", "components/view-state.yaml"]`.
+
+| New / changed rule | Implementation |
+|---|---|
+| `content.browser` mustNever: never show a raw filename as a title; micro.`title-from-h1-not-filename` | `build-manifest.mjs` parses each markdown file's first `# H1` into `node.title`. `content-tree.ts` `displayTitle(node)` = `node.title` ?? order-stripped name minus extension (folders: order-stripped folder name). Used in the schema tree, the persona topic list, and the browser tab. Verified: tree shows `Interface`, `Catenator standard`; tab shows `Interface — views — Catenator Reader`. |
+| `content.browser` micro.`readme-is-folder-default-content` | `folderReadme()` / `browser.readmeAt()`; `ViewState.applyRoute('/personas/<folder>')` loads that folder's `README.md` and renders it. |
+| `content.browser` micro.`strip-order-prefix-for-display` (full name kept for URL routing too) | already the case — URLs keep real names + order prefixes, drop only the extension. |
+| `view.state`: selecting a persona renders its `README.md` immediately, no placeholder; mustNever a "pick a topic" placeholder when a README exists; micro.`readme-renders-immediately-on-persona-select` | `applyRoute` for a persona-folder route resolves the README and calls `loadFile` in the same pass; the README row is marked active. Verified: dropdown select and direct `/personas/creators` both render the README with no `.pane-state` placeholder. |
+| `view.state` mustNever: never show both lists, even transiently; micro.`mutual-exclusivity` (previous mode's content fully removed from the DOM, not CSS-hidden) | `nav-panel.ts` uses Angular `@switch (state.mode())` — the non-matching branch's components are **destroyed**, not hidden. Verified: after switching to schema, `document.querySelector('app-persona-topics')` is `null`. |
+| `view.state` mustNever: persona list only directly below the dropdown, schema tree only directly below the Schema-docs button | that is the literal template order in `nav-panel.ts` `.lower`. |
+| `view.state` micro.`bidirectional-reset` (verified independently) | dropdown → Schema-docs clears the tree + button state; Schema-docs → dropdown resets to unselected + removes the list. Both checked in-browser. |
+| `ui.edge-cases.dynamic-page-title` now H1-based | `setTitleFor(node)` composes `displayTitle(node)` + ancestor folder names + product name. |
+
+Also fixed: the "Reading as" `<select>` used `[value]` binding, which didn't
+reflect the selected persona on a direct URL load — switched to `[selected]` on
+each `<option>`.
+
+Tests 18 → 20. Build 245 → 246 kB.
+
+---
+
+
 Full rebuild from `apps/reader-app/specs/` per `apps/shared/BUILD_INSTRUCTIONS.md`.
 `output/` was deleted and regenerated — the rewritten spec (real URL routing, a
 persistent fixed nav panel, a recursive tree, order-prefix handling) shares no

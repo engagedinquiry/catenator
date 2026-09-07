@@ -16,3 +16,9 @@ vocabulary:
       "2-descriptors", "3.1-interface.md"). The prefix is used only
       for numeric sorting; it is stripped before the name is
       displayed to the reader.
+  - term: "displayed title"
+    definition: >
+      What the reader sees as a file's name in the nav panel. This is
+      the file's own H1 heading, read from its content — never the
+      raw filename. Falls back to the order-stripped filename only if
+      the file has no H1.

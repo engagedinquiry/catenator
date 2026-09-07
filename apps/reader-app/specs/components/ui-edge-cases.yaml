@@ -2,56 +2,34 @@ ui.edge-cases:
   macro:
     systemName: "ui.edge-cases"
     domain: "presentation layout"
-    intent: >
-      The baseline behaviors expected of any real website, beyond the
-      core browsing/navigation mechanism: loading states, page titles,
-      empty folders, accessibility, mobile layout, and safe external
-      links.
+    intent: "Baseline website behaviors beyond core browsing: loading states, page titles, empty folders, accessibility, mobile layout, safe external links."
     mustNever:
-      - "Show a blank or frozen content pane while a file/list is
-         being fetched — a loading indicator is required"
-      - "Leave the browser tab title static throughout the app — it
-         must update per page"
-      - "Render the nav dropdown, tree, or links as plain <div>s
-         instead of real semantic HTML elements"
-      - "Navigate the reader away from the app when they click an
-         external link inside rendered markdown content"
+      - "Show a blank or frozen content pane while a file/list is being fetched"
+      - "Leave the browser tab title static throughout the app"
+      - "Render the nav dropdown, tree, or links as plain <div>s instead of real semantic HTML elements"
+      - "Navigate the reader away from the app when they click an external link inside rendered markdown content"
   meso:
     personas:
       - id: reader
         doing: "Experiences a complete, usable site on any device, with clear feedback at every step"
   micro:
     - id: loading-state
-      rule: >
-        While a file's content or a folder's listing is being fetched,
-        show a simple loading indicator in the content pane or nav
-        panel, whichever is waiting.
+      rule: "Show a simple loading indicator in the content pane or nav panel while fetching."
     - id: dynamic-page-title
       rule: >
-        The browser tab title updates to reflect the current page
-        (e.g. "Refraction — Engineers — Catenator Reader"), read from
-        build-config.yaml's branding.productName plus the current
-        persona/file, not left static.
+        The browser tab title updates per page, using the file's
+        parsed H1 title (per content.browser), plus persona and
+        build-config.yaml's branding.productName — never the raw
+        filename.
     - id: empty-folder-message
-      rule: >
-        If a folder (persona or schema section) genuinely contains no
-        files, the nav panel states this plainly ("No topics yet")
-        rather than showing an empty list with no explanation.
+      rule: "If a folder genuinely contains no files, show 'No topics yet' rather than an empty list."
     - id: semantic-accessible-controls
-      rule: >
-        The persona dropdown is a real <select>, the schema tree uses
-        real expandable/list semantics, and all navigation controls
-        are keyboard-reachable and screen-reader labeled.
+      rule: "The persona dropdown is a real <select>; the schema tree uses real expandable/list semantics; all controls are keyboard-reachable and screen-reader labeled."
     - id: mobile-collapsible-nav
       rule: >
         Below a viewport width of 768px, the fixed left nav panel
-        (defined in layout.shell) collapses behind a toggle control
-        (e.g. a hamburger icon) rather than permanently occupying
-        screen width. 768px is the one, single breakpoint value used
-        by both this rule and layout.shell's mobile-handoff rule —
-        neither component defines its own separate number.
+        (defined in layout.shell) collapses behind a toggle control.
+        768px is the one shared breakpoint value used by both this
+        rule and layout.shell's mobile-handoff rule.
     - id: external-links-new-tab
-      rule: >
-        Any link inside rendered markdown content pointing to a real
-        external URL (not an internal docs/ path) opens in a new
-        browser tab, never navigating the reader away from the app.
+      rule: "Any link inside rendered markdown pointing to a real external URL opens in a new tab."

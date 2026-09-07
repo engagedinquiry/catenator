@@ -9,10 +9,10 @@ contentSource:
   roots:
     - id: personas
       path: "personas/"
-      navigationMode: "dropdown"   # flat folder list, shown as a dropdown
+      navigationMode: "dropdown"
     - id: schema
       path: "schema/"
-      navigationMode: "tree"       # expandable list, arbitrary depth
+      navigationMode: "tree"
 
 techStack:
   frontend: "Angular"

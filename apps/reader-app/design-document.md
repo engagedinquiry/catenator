@@ -1,3 +1,5 @@
+Fair — that was me softening a real bug with a hedge instead of just naming it. Fixing the design document to state this plainly, no excuse room left for a future build to hide behind.
+
 # Design document — Catenator Reader
 
 ## What this is
@@ -22,6 +24,8 @@ The app offers two ways of navigating pre-authored content, and the mechanism pe
 
 Folder and file names may be `order-name` (e.g. `2-descriptors`, `3.1-interface`) or plain `name`. **Display strips the order prefix; sorting uses the full name** (numeric order, not alphabetical, where an order prefix exists).
 
+**Titles shown in the nav panel are never raw filenames.** A file's displayed label is its own H1 heading, read from the file's actual content — never the filename with its extension left on (e.g. never `refraction.md`). If a file has no H1, fall back to its filename with the order prefix and extension stripped, as a last resort only.
+
 ## What's always in the nav panel
 
 Always visible together, in every state:
@@ -30,10 +34,17 @@ Always visible together, in every state:
 2. **A "Reading as" dropdown** — lets the reader pick a persona. Not a list of clickable folders. A dropdown.
 3. **A "Schema docs" button.**
 
-## What happens when you use them
+## What happens when you use them — stated exactly, no ambiguity
 
-- **Selecting a persona from the dropdown** populates that persona's topic list below the dropdown, in the nav panel. Selecting a persona also resets the Schema docs button's active state and hides its tree if it was showing.
-- **Clicking "Schema docs"** resets the dropdown to unselected, clears the persona topic list, and shows the schema's own structure in the nav panel instead. Persona topics and schema structure are never shown at the same time — one replaces the other.
+- **Selecting a persona from the dropdown:**
+  1. The Schema docs button's active state clears completely, and its tree collapses/hides fully — no remnant of it stays visible anywhere in the panel.
+  2. **Directly below the dropdown, the nav panel immediately shows that persona's own topic list** — every file in that persona's folder, including its `README.md`, listed by its actual title (per the rule above). This is basic, expected navigation behavior: when you select something, its contents appear right there, in the same panel, immediately below it. There is no intermediate state, no placeholder, and no excuse for the list appearing anywhere else in the panel or not appearing at all.
+  3. **The content pane simultaneously shows that persona's `README.md`, already rendered** — the reader is never shown a "pick a topic" placeholder message when a real README exists to show instead. `README.md` is that persona's home page, and selecting the persona is sufficient to display it, with no further click required.
+- **Clicking "Schema docs":**
+  1. The dropdown resets to fully unselected — no persona name lingers as if still chosen.
+  2. The persona topic list is fully removed from the panel, not hidden behind or beneath the Schema docs section.
+  3. The schema tree appears directly below the Schema docs button, immediately.
+  4. Persona topics and schema structure are never both present in the panel at once, at any point, even transiently.
 - **The home state** (nothing selected yet) shows the actual rendered content of `docs/README.md` in the content pane, with the dropdown unselected and the schema button visible, as always.
 - **Active-state indication** — the currently open file, and its containing folder (if any), are visibly shown as selected in the nav panel at all times. This is standard, expected navigation behavior, not an optional extra.
 

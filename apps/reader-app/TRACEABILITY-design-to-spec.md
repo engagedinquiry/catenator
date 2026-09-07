@@ -44,3 +44,11 @@ None currently open. Every design-document requirement has at least
 one specific component/rule citation. This table itself is the check
 — if a future design-document change doesn't get a new row here, that
 absence is the signal something wasn't actually specified yet.
+
+**Traceability — the three bugs you flagged, mapped to specific fixes:**
+
+| Bug reported | Fixed by |
+|---|---|
+| Nav shows filenames with `.md` instead of titles | `content.browser` : title-from-h1-not-filename |
+| Persona list appears below Schema docs button, both partly visible | `view.state` : mutual-exclusivity + bidirectional-reset (now requires full DOM removal, not CSS-hide, and one atomic update) |
+| README not shown as the section's default page | `content.browser` : readme-is-folder-default-content; `view.state` : readme-renders-immediately-on-persona-select |

@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { ContentBrowser, displayName, urlSegmentFor } from '../core/content-browser';
+import { ContentBrowser, displayName, displayTitle, urlSegmentFor } from '../core/content-browser';
 import type { TreeNode } from '../core/content-browser';
 import { deliver, deliverHome, DeliveryResult } from '../core/delivery';
 import { pageTitle } from '../brand/brand';
@@ -58,16 +58,35 @@ export class ViewState {
 
     if (root === PERSONA_ROOT) {
       const found = rest.length ? this.browser.resolve(PERSONA_ROOT, rest) : null;
-      const real = found?.realPath ?? rest;
-      this.set('persona', rest[0] ?? null, real);
+
       if (rest.length >= 2) {
-        if (found?.node.type === 'file') await this.loadFile(PERSONA_ROOT, rest);
-        else this.notFound(clean);
+        if (found?.node.type === 'file') {
+          this.set('persona', rest[0], found.realPath);
+          await this.loadFile(PERSONA_ROOT, found.realPath);
+          this.setTitleFor(found.node);
+        } else {
+          this.set('persona', rest[0], rest);
+          this.notFound(clean);
+        }
+        return;
+      }
+
+      // /personas/<folder>: mode persona, topic list shown, AND the folder's
+      // README.md renders immediately — no "pick a topic" placeholder
+      // (view.state.readme-renders-immediately-on-persona-select).
+      const folder = rest[0] ?? null;
+      const readme = folder ? this.browser.readmeAt(PERSONA_ROOT, [folder]) : null;
+      if (folder && readme) {
+        const real = [folder, readme.name];
+        this.set('persona', folder, real);
+        await this.loadFile(PERSONA_ROOT, real);
+        this.setTitleFor(readme);
       } else {
+        this.set('persona', folder, folder ? [folder] : []);
         this.result.set(null);
         this.loading.set(false);
+        this.title.setTitle(pageTitle(folder ? [displayName(folder)] : []));
       }
-      this.title.setTitle(pageTitle(real.map(displayName).reverse()));
       return;
     }
 
@@ -82,18 +101,26 @@ export class ViewState {
       const real = found?.realPath ?? [];
       this.set('schema', null, real);
       this.autoExpand(real);
-      if (found?.node?.type === 'file') await this.loadFile(SCHEMA_ROOT, rest);
-      else {
+      if (found?.node?.type === 'file') {
+        await this.loadFile(SCHEMA_ROOT, real);
+        this.setTitleFor(found.node);
+      } else {
         this.result.set(null);
         this.loading.set(false);
+        this.title.setTitle(pageTitle(real.map(displayName).reverse()));
       }
-      this.title.setTitle(pageTitle(real.map(displayName).reverse()));
       return;
     }
 
     this.set('none', null, []);
     this.notFound(clean);
     this.title.setTitle(pageTitle(['Not found']));
+  }
+
+  /** ui.edge-cases.dynamic-page-title: file H1 + its folders + the product name. */
+  private setTitleFor(node: TreeNode): void {
+    const folders = this.selectedSegments().slice(0, -1).map(displayName).reverse();
+    this.title.setTitle(pageTitle([displayTitle(node), ...folders]));
   }
 
   private set(mode: NavMode, persona: string | null, real: string[]): void {

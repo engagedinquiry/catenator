@@ -34,7 +34,12 @@ a copy of every file. Re-run it after changing anything under `docs/`.
 
 The URL keeps the real folder names **and order prefixes** (`/schema/3-views/3.1-interface`)
 but drops the trailing file-type extension, so a bookmarked link never 404s on a
-static host. Displayed labels strip the order prefix; sorting is numeric by it.
+static host. Sorting is numeric by the order prefix.
+
+**Displayed titles come from each markdown file's first `# H1`** (nav entry and
+browser tab), falling back to the order-stripped filename only when a file has no
+H1. Selecting a persona renders that persona's `README.md` immediately — the
+topic list and the content appear together, with no "pick a topic" step.
 
 ## Spec → code
 

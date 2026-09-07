@@ -15,7 +15,7 @@
  * and mirrors every file under src/assets/content/<path>. Node children are
  * { name, type: "file" | "folder", children? } — recursive, arbitrary depth.
  */
-import { readdirSync, statSync, mkdirSync, rmSync, cpSync, copyFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, statSync, mkdirSync, rmSync, cpSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,13 +40,26 @@ const isDir = (p) => {
   }
 };
 
+/**
+ * content.browser micro.title-from-h1-not-filename: parse a markdown file's
+ * first H1 for use as its displayed title. Non-markdown files, or markdown with
+ * no H1, get no title here (the app falls back to the order-stripped filename).
+ */
+function h1Of(absFile) {
+  if (!/\.(md|markdown)$/i.test(absFile)) return undefined;
+  const text = readFileSync(absFile, 'utf8').replace(/^﻿/, '').replace(/\r\n/g, '\n');
+  const body = text.replace(/^---\n[\s\S]*?\n---\n?/, '');
+  const m = body.match(/^\s*#\s+(.+?)\s*$/m);
+  return m ? m[1].trim() : undefined;
+}
+
 /** Recursive walk — the same check at every level (recursive-not-fixed-depth). */
 function walk(absDir, name) {
   const children = readdirSync(absDir).map((entry) => {
     const abs = join(absDir, entry);
-    return isDir(abs)
-      ? walk(abs, entry)
-      : { name: entry, type: 'file' };
+    if (isDir(abs)) return walk(abs, entry);
+    const title = h1Of(abs);
+    return title ? { name: entry, type: 'file', title } : { name: entry, type: 'file' };
   });
   return { name, type: 'folder', children };
 }

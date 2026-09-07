@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { ContentBrowser, displayName, TreeNode } from '../core/content-browser';
+import { ContentBrowser, displayName, displayTitle, TreeNode } from '../core/content-browser';
 import { ViewState } from '../state/view-state';
 
 /**
@@ -27,7 +27,7 @@ import { ViewState } from '../state/view-state';
               [class.ancestor]="state.isAncestorOfOpen(pathOf(node))"
               (click)="state.toggleFolder(pathOf(node))">
               <span class="twist">{{ state.isExpanded(pathOf(node)) ? '▾' : '▸' }}</span>
-              {{ label(node.name) }}
+              {{ folderLabel(node.name) }}
             </button>
             @if (state.isExpanded(pathOf(node))) {
               <app-schema-tree [prefix]="pathOf(node)" />
@@ -38,7 +38,7 @@ import { ViewState } from '../state/view-state';
               class="row file"
               [class.active]="state.isActivePath('schema', pathOf(node))"
               (click)="state.openNode('schema', prefix(), node)">
-              {{ label(node.name) }}
+              {{ titleOf(node) }}
             </button>
           }
         </li>
@@ -88,7 +88,10 @@ export class SchemaTree {
   pathOf(node: TreeNode): string[] {
     return [...this.prefix(), node.name];
   }
-  label(name: string): string {
+  titleOf(node: TreeNode): string {
+    return displayTitle(node);
+  }
+  folderLabel(name: string): string {
     return displayName(name);
   }
 }

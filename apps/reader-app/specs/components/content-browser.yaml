@@ -4,11 +4,11 @@ content.browser:
     domain: "content governance"
     intent: >
       One recursive mechanism for walking pre-authored folders of
-      arbitrary depth under docs/. For each root (personas/, schema/),
-      how it's presented in the nav panel (dropdown vs. tree) is a
-      config value from build-config.yaml's contentSource.roots — not
-      hardcoded logic tied to a root's name. The underlying walk
-      (file vs. folder, at any depth) is identical for every root.
+      arbitrary depth under docs/. How a root is presented (dropdown
+      vs. tree) is a config value from build-config.yaml's
+      contentSource.roots, never hardcoded logic keyed to a root's
+      name. Every displayed title comes from the file's own H1, not
+      its filename.
     mustNever:
       - "Hardcode a persona name, topic name, filename, or an assumed
          folder depth anywhere in this component"
@@ -18,6 +18,11 @@ content.browser:
          build-config.yaml, joined with contentSource.rootDir"
       - "Display a folder or file's order prefix (e.g. '2-', '3.1-')
          as part of its shown label — strip it, use it only for sort"
+      - "Display a file's raw filename (with or without its .md
+         extension) as its title anywhere in the nav panel or the
+         browser tab — the displayed title is always the file's own
+         H1, falling back to the order-stripped filename only when no
+         H1 exists"
   meso:
     personas:
       - id: reader
@@ -26,16 +31,20 @@ content.browser:
       - "Given a root's config (path + navigationMode), list its
          immediate entries."
       - "For each entry: if it's a file, it's clickable — selecting
-         it returns its content. If it's a folder, it's drillable —
-         recurse into it the same way, regardless of depth."
+         it returns its content AND its parsed H1 title. If it's a
+         folder, it's drillable — recurse into it the same way,
+         regardless of depth."
       - "For navigationMode 'dropdown': the root's immediate
-         subfolders become dropdown options. Selecting one shows that
-         subfolder's files as a flat list (personas/ folders are not
-         expected to nest further, but if they did, the same
-         recursive rule still applies)."
+         subfolders become dropdown options, labeled by folder name
+         (order-stripped)."
       - "For navigationMode 'tree': the root's structure is rendered
          as an expandable tree, arbitrary depth, matching whatever the
-         filesystem actually contains."
+         filesystem actually contains, each entry labeled by its H1
+         (files) or folder name (folders, order-stripped)."
+      - "For any folder that contains a README.md, that file's parsed
+         content is returned alongside the folder listing as the
+         folder's default content — see view.state for how this is
+         displayed."
   micro:
     - id: recursive-not-fixed-depth
       rule: >
@@ -45,15 +54,30 @@ content.browser:
     - id: strip-order-prefix-for-display
       rule: >
         A name like "2-descriptors" or "3.1-interface.md" displays as
-        "descriptors" or "interface.md" — the leading order token
-        (digits, optional sub-number, trailing hyphen) is removed for
-        display only. The full original name is retained for sorting.
+        "descriptors" or "interface.md" (or its H1, per the title rule
+        below) — the leading order token is removed for display only.
+        The full original name is retained for sorting and for URL
+        routing.
     - id: numeric-sort-by-order-prefix
       rule: >
         Entries are sorted by their order prefix numerically (2 before
         10, 3.1 before 3.2), not alphabetically as plain strings. An
         entry with no order prefix sorts after all entries that have
         one, alphabetically among themselves.
+    - id: title-from-h1-not-filename
+      rule: >
+        Parse each markdown file's first H1 heading and use it as the
+        file's displayed title everywhere (nav panel entry, browser
+        tab title). If no H1 exists in the file, fall back to the
+        order-stripped filename (still without its .md extension) as
+        the displayed title — never show the raw filename when an H1
+        is present.
+    - id: readme-is-folder-default-content
+      rule: >
+        When a folder (e.g. a persona's folder) contains a README.md,
+        that file's content is surfaced as the folder's default
+        content — returned as part of selecting that folder, not
+        requiring a separate click on README.md in the file list.
     - id: full-markdown-rendering
       rule: >
         File content renders with GFM support, including tables (pipe

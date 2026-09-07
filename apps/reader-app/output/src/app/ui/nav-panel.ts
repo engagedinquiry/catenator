@@ -29,10 +29,10 @@ import { BRAND } from '../brand/brand';
 
       <label class="reading-as">
         <span class="ra-label">Reading as</span>
-        <select [value]="state.selectedPersona() ?? ''" (change)="onPersona($event)" aria-label="Reading as">
-          <option value="" disabled>Choose a persona…</option>
+        <select (change)="onPersona($event)" aria-label="Reading as">
+          <option value="" disabled [selected]="!state.selectedPersona()">Choose a persona…</option>
           @for (p of state.personaOptions(); track p.name) {
-            <option [value]="p.name">{{ label(p.name) }}</option>
+            <option [value]="p.name" [selected]="p.name === state.selectedPersona()">{{ label(p.name) }}</option>
           }
         </select>
       </label>

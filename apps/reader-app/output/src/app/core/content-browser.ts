@@ -4,14 +4,21 @@ import {
   RootConfig,
   TreeNode,
   displayName,
+  displayTitle,
   orderSort,
   resolveNode,
   sortChildren,
   urlSegmentFor
 } from './content-tree';
 
-export { displayName, orderSort, urlSegmentFor };
+export { displayName, displayTitle, orderSort, urlSegmentFor };
 export type { TreeNode, RootConfig };
+
+/** content.browser: a folder's README.md child, if it has one (its default content). */
+export function folderReadme(folder: TreeNode | null): TreeNode | null {
+  if (!folder || folder.type !== 'folder') return null;
+  return (folder.children ?? []).find((c) => c.type === 'file' && /^readme\.md$/i.test(c.name)) ?? null;
+}
 
 /**
  * content.browser — one recursive mechanism for walking pre-authored folders of
@@ -69,6 +76,11 @@ export class ContentBrowser {
   /** Resolve URL segments (extensions stripped) to the node + its real path. */
   resolve(rootId: string, urlSegments: string[]): { node: TreeNode; realPath: string[] } | null {
     return resolveNode(this.root(rootId)?.tree ?? null, urlSegments);
+  }
+
+  /** The README node of a folder at a real path, or null. */
+  readmeAt(rootId: string, realSegments: string[]): TreeNode | null {
+    return folderReadme(resolveNode(this.root(rootId)?.tree ?? null, realSegments)?.node ?? null);
   }
 
   isFile(rootId: string, urlSegments: string[]): boolean {

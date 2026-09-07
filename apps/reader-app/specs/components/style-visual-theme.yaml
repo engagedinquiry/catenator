@@ -2,37 +2,22 @@ style.visual-theme:
   macro:
     systemName: "style.visual-theme"
     domain: "presentation layout"
-    intent: >
-      Apply the same visual style used across all Catenator apps
-      (icons, colors, selector states) to this app's actual UI — nav
-      panel, dropdown, tree, content pane.
+    intent: "Apply the same visual style used across all Catenator apps to this app's nav panel, dropdown, tree, and content pane."
     mustNever:
-      - "Change any content-loading logic, navigation behavior, or
-         delivery contract as part of this styling pass"
-      - "Import or create a live dependency on the reference
-         application's codebase — copy visual values/assets only"
-      - "Introduce a new icon library or dependency without first
-         checking whether the reference application already uses one
-         that can be reused"
+      - "Change any content-loading logic, navigation behavior, or delivery contract as part of this styling pass"
+      - "Import or create a live dependency on the reference application's codebase — copy visual values/assets only"
+      - "Introduce a new icon library or dependency without first checking whether the reference application already uses one that can be reused"
   meso:
     personas:
       - id: reader
         doing: "Views a consistently styled nav panel and content pane"
     reference:
       path: "C:\\Users\\parth\\ei\\eisyntaxia_repos\\syntaxia-studio"
-      access: "read-only — inspect for styling values and assets, do not modify or import live"
+      access: "read-only"
       whatToExtract:
-        - "CSS/styling approach — global stylesheet, component-scoped
-           styles, CSS framework, CSS variables/theme file"
-        - "Icon set/library used (package name, or custom SVG assets)"
-        - "List-item/nav styling: border weight, corner radius,
-           spacing, color per state (selected / unselected / hover)"
-        - "General color palette and typography, consistent with
-           every other Catenator app"
+        - "CSS/styling approach, icon set/library, list-item state styling, color palette and typography"
   micro:
     - id: report-before-applying
       rule: "Report what was found in the reference application before making visual changes."
-    - id: apply-to-reader-ui-elements
-      rule: "Apply the extracted style to the nav panel, dropdown, tree, and content pane."
     - id: standalone-styling
       rule: "All copied styling values and icon assets are committed into this app's own codebase — nothing loads from the reference application at runtime."

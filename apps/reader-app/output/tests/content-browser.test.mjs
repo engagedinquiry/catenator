@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { displayName, orderSort, urlSegmentFor, resolveNode } from '../src/app/core/content-tree.ts';
+import {
+  displayName,
+  displayTitle,
+  orderSort,
+  urlSegmentFor,
+  resolveNode
+} from '../src/app/core/content-tree.ts';
 
 const manifest = JSON.parse(
   readFileSync(
@@ -44,6 +50,24 @@ test('content.browser: every tree node is {name,type}, folders recurse (no fixed
     }
   };
   manifest.roots.forEach((r) => check(r.tree));
+});
+
+test('content.browser: displayTitle uses the H1, falls back to order-stripped name minus ext', () => {
+  assert.equal(displayTitle({ name: '3.1-interface.md', type: 'file', title: 'Interface' }), 'Interface');
+  assert.equal(displayTitle({ name: '3.1-interface.md', type: 'file' }), 'interface');
+  assert.equal(displayTitle({ name: '9.1-x.yaml', type: 'file' }), 'x');
+  assert.equal(displayTitle({ name: '2-descriptors', type: 'folder' }), 'descriptors');
+});
+
+test('content.browser: manifest markdown files carry a parsed H1 title', () => {
+  const collectFiles = (node, out = []) => {
+    if (node.type === 'file') out.push(node);
+    else (node.children ?? []).forEach((c) => collectFiles(c, out));
+    return out;
+  };
+  const mdFiles = manifest.roots.flatMap((r) => collectFiles(r.tree)).filter((n) => /\.md$/.test(n.name));
+  const withTitle = mdFiles.filter((n) => typeof n.title === 'string' && n.title.length);
+  assert.ok(withTitle.length / mdFiles.length > 0.8, `only ${withTitle.length}/${mdFiles.length} md files have an H1 title`);
 });
 
 test('content.browser: url segment strips the file extension, keeps order prefix', () => {
