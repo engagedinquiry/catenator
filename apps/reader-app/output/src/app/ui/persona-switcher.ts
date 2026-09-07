@@ -1,72 +1,61 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { ReaderStore } from '../state/reader-store';
 
 /**
- * The persona switcher — six options, exactly one selected at a time, always
- * visible as its own control (delivery.request-response micro.both-explicit).
- *
- * style.visual-theme micro.apply-to-reader-ui-elements: selected option gets a
- * filled background (the same "done" treatment Phase 0's step-nav uses),
- * unselected options are neutral/outlined.
+ * layout.reader-shell micro.persona-switcher-is-dropdown: a single <select>
+ * showing the six personas from persona.catalog — not six buttons or a list.
+ * Changing it routes to /:newPersonaId/:currentTopicId so the content pane
+ * updates (delivery.request-response) and the topic persists
+ * (content.source micro.topic-persists-across-persona-switch).
  */
 @Component({
   selector: 'app-persona-switcher',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="switcher" role="group" aria-label="Choose a persona">
-      <p class="switcher-label">Reading as</p>
-      @for (p of store.personas; track p.id) {
-        <button
-          type="button"
-          class="option"
-          [class.selected]="store.personaId() === p.id"
-          [attr.aria-pressed]="store.personaId() === p.id"
-          (click)="store.selectPersona(p.id)">
-          {{ p.label }}
-        </button>
-      }
-      @if (!store.hasPersona()) {
-        <p class="switcher-hint">Pick one to see that audience's version. You can switch anytime.</p>
-      }
-    </div>
+    <label class="ps">
+      <span class="ps-label">Reading as</span>
+      <select (change)="pick($event)">
+        @for (p of store.personas; track p.id) {
+          <option [value]="p.id" [selected]="p.id === store.personaId()">{{ p.label }}</option>
+        }
+      </select>
+    </label>
   `,
   styles: [
     `
-      .switcher { display: flex; flex-direction: column; gap: 4px; padding: 12px; }
-      .switcher-label {
-        margin: 0 0 4px;
+      .ps { display: inline-flex; align-items: center; gap: 8px; }
+      .ps-label {
         font-family: var(--font-display);
-        font-size: 0.6875rem;
+        font-size: 0.625rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.07em;
         color: var(--text-muted);
       }
-      .option {
-        text-align: left;
+      select {
+        font: inherit;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 0.8125rem;
+        color: var(--text-title);
         background: var(--canvas-bg);
-        color: var(--text-body);
         border: 1px solid var(--border-control);
         border-radius: var(--radius-control);
-        padding: 8px 12px;
-        font-family: var(--font-display);
-        font-size: 0.8125rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s ease;
+        padding: 5px 8px;
       }
-      .option:hover { background: #f1f5f9; color: var(--text-title); }
-      .option.selected {
-        background: var(--accent-blue);
-        border-color: var(--accent-blue);
-        color: #ffffff;
-        font-weight: 700;
-      }
-      .switcher-hint { margin: 8px 2px 0; font-size: 0.75rem; color: var(--text-muted); }
+      select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-blue-light); }
     `
   ]
 })
 export class PersonaSwitcher {
   readonly store = inject(ReaderStore);
+  private router = inject(Router);
+
+  pick(ev: Event): void {
+    const personaId = (ev.target as HTMLSelectElement).value;
+    if (!personaId) return;
+    this.router.navigate(['/', personaId, this.store.topicId()]);
+  }
 }

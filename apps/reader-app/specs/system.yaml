@@ -39,3 +39,5 @@ components:
   - ref: components/delivery-request-response.yaml
   - ref: components/style-visual-theme.yaml
   - ref: components/branding-rename.yaml
+  - ref: components/layout-reader-shell.yaml
+  - ref: components/navigation-routes.yaml

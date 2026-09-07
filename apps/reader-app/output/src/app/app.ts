@@ -1,13 +1,19 @@
 import { Component, inject } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { BRAND, BRAND_LINE, BRAND_TITLE } from './brand/brand';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { BRAND, BRAND_TITLE } from './brand/brand';
 import { AppIcon } from './ui/app-icon';
 
+/**
+ * The app shell is just the utility rail + the routed page. layout.reader-shell
+ * (top bar with the persona dropdown, fixed-width topic list, content pane)
+ * lives in PersonaPage — navigation.routes micro.layout-applies-below-home: the
+ * home route uses its own simpler single-column rendering.
+ */
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AppIcon],
+  imports: [RouterOutlet, RouterLink, AppIcon],
   template: `
     <div class="studio-shell">
       <nav class="rail">
@@ -15,19 +21,8 @@ import { AppIcon } from './ui/app-icon';
           <app-icon name="icon-catenator-logo" [size]="24" />
         </a>
       </nav>
-
       <div class="shell-main">
-        <header class="shell-topbar">
-          <span class="topbar-brand">{{ brandLine }}</span>
-          <a class="topbar-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            Read
-          </a>
-          <a class="topbar-link" routerLink="/standard" routerLinkActive="active">The standard</a>
-        </header>
-
-        <div class="workspace">
-          <router-outlet />
-        </div>
+        <router-outlet />
       </div>
     </div>
   `,
@@ -44,24 +39,12 @@ import { AppIcon } from './ui/app-icon';
         padding: 16px 0;
         box-sizing: border-box;
       }
-      .rail-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        color: #ffffff;
-      }
-      .topbar-link + .topbar-link { margin-left: 8px; }
-      .topbar-link.active { color: var(--text-title); border-color: #bfdbfe; background: var(--accent-blue-light); }
-      .workspace { flex: 1; min-height: 0; display: flex; overflow: hidden; }
-      .workspace > * { flex: 1; min-width: 0; }
+      .rail-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: #ffffff; }
     `
   ]
 })
 export class App {
   readonly brand = BRAND;
-  readonly brandLine = BRAND_LINE;
 
   constructor() {
     inject(Title).setTitle(BRAND_TITLE);

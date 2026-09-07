@@ -74,6 +74,17 @@ export function renderMarkdown(md: string): string {
       continue;
     }
 
+    // drop a line that is nothing but a raw block-level HTML tag (opening or
+    // closing wrapper, or a bare <img> banner). The governed docs open with a
+    // <p align><img></p> logo block that has no place in the app chrome; the
+    // text renderer stays HTML-safe (inline tags in prose are still escaped),
+    // and markdown image syntax ![alt](src) still works via inline().
+    if (/^\s*<\/?(p|div|span|section|figure|picture|source|br|hr|img)\b[^>]*>\s*$/i.test(line)) {
+      closeLists();
+      i++;
+      continue;
+    }
+
     // horizontal rule
     if (/^(\s*[-*_]){3,}\s*$/.test(line)) {
       closeLists();

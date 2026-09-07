@@ -1,37 +1,37 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ReaderStore } from '../state/reader-store';
 
 /**
- * The topic list — always visible as its own selector, separate from the
- * persona switcher (delivery.request-response micro.both-explicit).
- *
- * content.source micro.null-means-unavailable: a topic with a null file for the
- * current persona is shown, but marked "Not covered" and non-selectable rather
- * than hidden or broken. Before a persona is chosen, every topic is shown plain
- * (only "start" yields content).
+ * layout.reader-shell topic-list: left, fixed width (the width is set on the
+ * shell container, not here, and does not react to content — micro.fixed-topic-
+ * list-width). Each live row is a routerLink to /:personaId/:topicId
+ * (navigation.routes micro.browser-navigable). A topic with a null file for the
+ * current persona is shown but marked "Not covered" and non-navigable
+ * (content.source micro.null-means-unavailable).
  */
 @Component({
   selector: 'app-topic-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     <nav class="topic-list" aria-label="Topics">
-      <p class="list-label">Topic</p>
+      <p class="list-label">Topics</p>
       @for (t of store.topics; track t.id) {
         @if (isDisabled(t.id)) {
-          <span class="topic disabled" [attr.title]="'Not covered for this persona'">
+          <span class="topic disabled" title="Not covered for this persona">
             {{ t.label }}
             <span class="tag">Not covered</span>
           </span>
         } @else {
-          <button
-            type="button"
+          <a
             class="topic"
             [class.selected]="store.topicId() === t.id"
-            [attr.aria-current]="store.topicId() === t.id ? 'true' : null"
-            (click)="store.selectTopic(t.id)">
+            [routerLink]="['/', store.personaId(), t.id]"
+            [attr.aria-current]="store.topicId() === t.id ? 'true' : null">
             {{ t.label }}
-          </button>
+          </a>
         }
       }
     </nav>
@@ -63,11 +63,12 @@ import { ReaderStore } from '../state/reader-store';
         font-family: var(--font-display);
         font-size: 0.8125rem;
         font-weight: 500;
+        text-decoration: none;
         cursor: pointer;
         transition: all 0.15s ease;
       }
-      button.topic:hover { background: #f1f5f9; color: var(--text-title); }
-      button.topic.selected {
+      a.topic:hover { background: #f1f5f9; color: var(--text-title); }
+      a.topic.selected {
         background: var(--accent-blue-light);
         border-color: var(--accent-blue);
         color: var(--accent-blue-strong);
@@ -92,6 +93,6 @@ export class TopicList {
   readonly store = inject(ReaderStore);
 
   isDisabled(topicId: string): boolean {
-    return this.store.hasPersona() && !this.store.availableTopicIds().has(topicId);
+    return !this.store.availableTopicIds().has(topicId);
   }
 }

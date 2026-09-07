@@ -1,15 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BRAND } from '../brand/brand';
 import { renderMarkdown } from '../core/markdown';
 import { ReaderStore } from '../state/reader-store';
 
 /**
- * The content pane — renders the delivered markdown, or the explicit state
- * message when there is none (no persona chosen / not covered / not found).
- *
- * mustNever "Fail silently if a topic's file is missing" — every non-content
- * DeliveryResponse renders a visible, worded message here, never a blank pane.
+ * layout.reader-shell content-pane: renders the delivered markdown, or the
+ * explicit state message when there is none. mustNever "Fail silently if a
+ * topic's file is missing" — every non-content DeliveryResponse renders a
+ * visible, worded message, never a blank pane.
  */
 @Component({
   selector: 'app-content-pane',
@@ -24,18 +22,6 @@ import { ReaderStore } from '../state/reader-store';
         @case ('content') {
           <article class="markdown" [innerHTML]="html()"></article>
         }
-        @case ('no-persona-selected') {
-          <div class="pane-intro">
-            <h1>{{ brand.productName }}</h1>
-            <p class="lead">{{ brand.tagline }}</p>
-            <p>
-              This is the same governed material, shaped for six different audiences.
-              Choose a persona on the left to read its version — the topic you're on
-              stays put when you switch.
-            </p>
-            <p class="pane-note">{{ message() }}</p>
-          </div>
-        }
         @case ('not-available-for-persona') {
           <div class="pane-state">
             <h2>Not covered for this persona</h2>
@@ -49,8 +35,14 @@ import { ReaderStore } from '../state/reader-store';
             <p>{{ message() }}</p>
           </div>
         }
+        @case ('no-persona-selected') {
+          <div class="pane-state">
+            <h2>Choose a persona</h2>
+            <p>{{ message() }}</p>
+          </div>
+        }
         @default {
-          <p class="pane-note">Choose a persona to begin.</p>
+          <p class="pane-note">Loading…</p>
         }
       }
     }
@@ -59,14 +51,13 @@ import { ReaderStore } from '../state/reader-store';
     `
       app-content-pane { display: block; }
       .pane-note { color: var(--text-muted); font-size: 0.8125rem; }
-      .pane-intro, .pane-state { max-width: 640px; }
+      .pane-state { max-width: 640px; }
       .pane-state h2 { margin-top: 0; }
     `
   ]
 })
 export class ContentPane {
   readonly store = inject(ReaderStore);
-  readonly brand = BRAND;
   private sanitizer = inject(DomSanitizer);
 
   readonly res = this.store.response;

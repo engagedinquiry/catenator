@@ -145,3 +145,36 @@ export function topicsForPersona(personaId: string): Set<string> {
 }
 
 export const ALL_PERSONA_IDS = PERSONA_CATALOG.map((p) => p.id);
+
+/**
+ * Reverse of the topicMap: given a persona and a raw filename (as it appears in
+ * a markdown link inside docs/README.md, e.g. "design-document.md"), the topic
+ * id that file backs for that persona — or null if that persona has no such
+ * topic. Used by navigation.routes to turn README links into internal routes.
+ */
+export function topicIdForFilename(personaId: string, filename: string): string | null {
+  const name = filename.replace(/^\.?\//, '').split('/').pop() ?? filename;
+  for (const t of TOPIC_MAP) {
+    if ((t.filenames[personaId] ?? null) === name) return t.id;
+  }
+  return null;
+}
+
+/**
+ * navigation.routes micro.home-link-interception: parse an href from the home
+ * README. If it points into a known persona's sourceFolder, return the internal
+ * route segments; if it is a "#personaId" anchor, likewise. Otherwise null (a
+ * real external/other link, left alone).
+ */
+export function internalRouteForHref(href: string): string[] | null {
+  const anchor = href.match(/^#([a-z-]+)$/i);
+  if (anchor && personaById(anchor[1])) return [anchor[1]];
+
+  const clean = href.replace(/^\.?\//, '');
+  const [folder, file] = clean.split('/');
+  const persona = PERSONA_CATALOG.find((p) => p.sourceFolder.replace(/\/$/, '') === folder);
+  if (!persona) return null;
+  if (!file || file === 'README.md') return [persona.id];
+  const topicId = topicIdForFilename(persona.id, file);
+  return topicId ? [persona.id, topicId] : [persona.id];
+}

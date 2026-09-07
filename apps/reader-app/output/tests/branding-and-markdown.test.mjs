@@ -52,6 +52,19 @@ test('markdown: headings, lists, code and links render; raw HTML is escaped', ()
   assert.ok(!html.includes('<script>'));
 });
 
+test('markdown: raw block-level HTML banner (incl. <img>) is dropped, not shown', () => {
+  const html = renderMarkdown(
+    ['<p align="left">', '  <img src="../brand/logo.png" alt="Catenator">', '</p>', '', '# Catenator'].join('\n')
+  );
+  assert.match(html, /<h1>Catenator<\/h1>/);
+  assert.ok(!html.includes('&lt;p align'));
+  assert.ok(!html.includes('logo.png'));
+});
+
+test('markdown: inline image syntax ![alt](src) still renders', () => {
+  assert.match(renderMarkdown('![diagram](d.png)'), /<img alt="diagram" src="d\.png">/);
+});
+
 test('markdown: leading YAML frontmatter is stripped, not rendered', () => {
   const html = renderMarkdown(['---', 'title: X', 'tags:', '  - a', '---', '', '# Body'].join('\n'));
   assert.match(html, /<h1>Body<\/h1>/);

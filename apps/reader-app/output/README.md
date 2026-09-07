@@ -26,16 +26,18 @@ reference folder into `src/assets/content/`, and
 `src/app/core/build-config.ts` (`CONTENT_ROOT`) is the single place that path is
 named. Re-run `npm run sync:content` after editing anything under `docs/`.
 
-## What the reader does
+## Routes
 
-| Control | Behaviour |
+| URL | Renders |
 |---|---|
-| **Persona switcher** (6 fixed options) | Pick one at a time. Nothing is inferred — the choice *is* the persona. Switching keeps the current topic. |
-| **Topic list** (6 topics) | Always a separate selector. A topic with no file for the chosen persona shows **Not covered** and is non-selectable, never a blank page. |
-| **The standard** (top bar) | The Catenator standard itself — one canonical reference, identical for every persona, not part of the persona switch. |
+| `/` | `docs/README.md` itself — the "which one is you?" landing page. Its persona links route *into* the app (e.g. `[Engineers](engineers/README.md)` → `/engineers`), never to raw markdown. Single column, no persona selected. |
+| `/:personaId` | That persona's topic list (fixed-width, left) + their `start` topic in the content pane. Top bar carries the branding and the persona **dropdown**. |
+| `/:personaId/:topicId` | A specific topic for that persona. A topic with no file for that persona shows **Not covered**, never a blank page. |
+| `/standard` | The Catenator standard itself — one canonical reference, identical for every persona. |
 
-On first load: topic `start`, no persona — generic framing shows until a persona
-is chosen.
+All routes are real, bookmarkable URLs. Switching persona in the dropdown keeps
+the current topic (`/:newPersona/:sameTopic`). Nothing about the reader is
+inferred — the persona in the URL is the only persona used.
 
 ## Spec → code map
 
@@ -45,6 +47,8 @@ is chosen.
 | `content-source.yaml` | `src/app/core/content-source.ts` — `TOPIC_MAP`, `fileFor()`, `STANDARD_REFERENCE` |
 | `delivery-request-response.yaml` | `src/app/core/delivery.ts` — `deliver({topicId, personaId})` |
 | `style-visual-theme.yaml` | `src/styles.css` + `src/app/ui/*` — Catenator design system, selected = filled |
+| `layout-reader-shell.yaml` | `src/app/pages/persona-page.ts` — top bar + fixed-width topic list + content pane |
+| `navigation-routes.yaml` | `src/app/app.routes.ts` + `src/app/pages/home-page.ts` + `content-source.ts` link resolution |
 | `branding-rename.yaml` (not in this app's spec set; Phase 0 pattern applied) | `src/app/brand/brand.ts` — sole source of the product name |
 
 See `BUILD_REPORT.md` for the per-component mustNever / micro verification.

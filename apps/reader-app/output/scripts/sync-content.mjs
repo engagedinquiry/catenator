@@ -9,7 +9,7 @@
  *
  *   node scripts/sync-content.mjs
  */
-import { cpSync, rmSync, mkdirSync } from 'node:fs';
+import { cpSync, rmSync, mkdirSync, copyFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,4 +35,10 @@ for (const folder of [...PERSONA_FOLDERS, STANDARD_FOLDER]) {
   cpSync(join(srcRoot, folder), join(destRoot, folder), { recursive: true });
   console.log(`synced ${folder}/`);
 }
+
+// navigation.routes: the "/" route renders the root index file (README.md,
+// relative to contentSource.rootDir) — docs/README.md itself.
+copyFileSync(join(srcRoot, 'README.md'), join(destRoot, 'README.md'));
+console.log('synced README.md');
+
 console.log(`content root: ${destRoot}`);
