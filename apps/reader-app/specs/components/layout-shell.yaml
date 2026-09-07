@@ -19,11 +19,33 @@ layout.shell:
     structure:
       - id: left-panel
         position: "fixed, left, full viewport height, fixed width"
-        content: "Home button, Reading-as dropdown, Schema docs button, and whichever of persona-topics/schema-tree is active (per view.state)"
+        verticalOrder: >
+          Exactly this order, top to bottom, always, regardless of
+          mode: (1) Home button, (2) Reading-as dropdown, (3) the
+          persona topic list — ONLY when mode is 'persona', appearing
+          directly between the dropdown and the Schema docs button,
+          never below it, (4) Schema docs button, (5) the schema tree
+          — ONLY when mode is 'schema', appearing directly below the
+          Schema docs button. Items (3) and (5) are mutually
+          exclusive per view.state, but their FIXED POSITIONS in this
+          order never change — the persona topic list's position is
+          always between dropdown and button, never after the button.
       - id: content-pane
         position: "remaining width, right of left-panel"
         content: "Rendered README, file content, loading state, or not-found state"
   micro:
+    - id: fixed-vertical-order
+      rule: >
+        The left panel's children render in exactly this DOM order,
+        always: Home button, dropdown, [persona topic list if mode is
+        'persona'], Schema docs button, [schema tree if mode is
+        'schema']. The persona topic list, when present, is a sibling
+        element inserted BETWEEN the dropdown and the Schema docs
+        button in the DOM — never appended after the Schema docs
+        button. This is the single most important structural
+        requirement in this component; verify it explicitly by
+        inspecting the rendered DOM order, not just that all elements
+        are present somewhere in the panel.
     - id: left-panel-is-fixed
       rule: >
         The left panel uses fixed positioning with a set width, full

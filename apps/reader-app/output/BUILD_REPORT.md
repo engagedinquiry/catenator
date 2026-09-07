@@ -1,5 +1,39 @@
 # Build report — reader-app
 
+## Component update — layout.shell fixed-vertical-order
+
+`RUN.md` scoped a run to `["components/layout-shell.yaml"]`. New micro rule
+`fixed-vertical-order`: the left panel's DOM order is always Home button →
+dropdown → **[persona topic list, when mode is 'persona', inserted _between_ the
+dropdown and the Schema docs button]** → Schema docs button → **[schema tree,
+when mode is 'schema', directly below the button]**.
+
+Before this update `nav-panel.ts` rendered both lists in one `.lower` block
+_after_ the Schema docs button. Now:
+
+```
+Home button
+Reading-as dropdown
+@if (mode === 'persona') <app-persona-topics>     ← between dropdown and button
+Schema docs button
+@if (mode === 'schema')  <app-schema-tree>        ← after the button
+```
+
+Still mutually exclusive (both are `@if`, so the inactive one is absent from the
+DOM, not hidden). Verified by inspecting the rendered `.nav-inner` child order:
+
+| Route | `.nav-inner` children, in order |
+|---|---|
+| `/` | `home`, `reading-as`, `schema-btn` |
+| `/personas/engineers` | `home`, `reading-as`, `lower>persona`, `schema-btn` |
+| `/schema/3-views/3.1-interface` | `home`, `reading-as`, `schema-btn`, `lower>tree` |
+
+`branding.test.mjs` also asserts the template source order (dropdown < persona
+list < schema button < schema tree). Tests 20 → 21.
+
+---
+
+
 ## Component update — content.browser + view.state (titles from H1, README-as-default)
 
 `RUN.md` scoped a run to `["components/content-browser.yaml", "components/view-state.yaml"]`.

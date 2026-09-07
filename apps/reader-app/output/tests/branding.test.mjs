@@ -49,6 +49,18 @@ test('no-hardcoded-names: no persona/section folder literal in app code', () => 
   }
 });
 
+test('layout.shell.fixed-vertical-order: persona list is between the dropdown and the Schema docs button', () => {
+  const nav = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'app', 'ui', 'nav-panel.ts'), 'utf8');
+  const dropdown = nav.indexOf('class="reading-as"');
+  const personaList = nav.indexOf('<app-persona-topics />');
+  const schemaBtn = nav.indexOf('class="schema-btn"');
+  const schemaTree = nav.indexOf('<app-schema-tree');
+  assert.ok(dropdown > -1 && personaList > -1 && schemaBtn > -1 && schemaTree > -1);
+  assert.ok(dropdown < personaList, 'dropdown must come before the persona list');
+  assert.ok(personaList < schemaBtn, 'persona list must come BEFORE the Schema docs button');
+  assert.ok(schemaBtn < schemaTree, 'schema tree must come after the Schema docs button');
+});
+
 test('one-breakpoint: 768 appears only in app.ts, and as the media query value', () => {
   const withBp = walk(srcDir).filter((f) => readFileSync(f, 'utf8').includes('768'));
   assert.deepEqual(

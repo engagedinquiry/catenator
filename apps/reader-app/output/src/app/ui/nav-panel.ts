@@ -37,6 +37,15 @@ import { BRAND } from '../brand/brand';
         </select>
       </label>
 
+      <!-- layout.shell.fixed-vertical-order: DOM order is always Home, dropdown,
+           [persona topic list — mode 'persona' only, BETWEEN dropdown and the
+           Schema docs button], Schema docs button, [schema tree — mode 'schema'
+           only, directly below the button]. Positions never move; (3) and (5)
+           are mutually exclusive per view.state. -->
+      @if (state.mode() === 'persona') {
+        <div class="lower persona-lower"><app-persona-topics /></div>
+      }
+
       <button
         type="button"
         class="schema-btn"
@@ -46,16 +55,9 @@ import { BRAND } from '../brand/brand';
         Schema docs
       </button>
 
-      <div class="lower">
-        @switch (state.mode()) {
-          @case ('persona') {
-            <app-persona-topics />
-          }
-          @case ('schema') {
-            <app-schema-tree [prefix]="[]" />
-          }
-        }
-      </div>
+      @if (state.mode() === 'schema') {
+        <div class="lower schema-lower"><app-schema-tree [prefix]="[]" /></div>
+      }
     </div>
   `,
   styles: [
@@ -109,7 +111,8 @@ import { BRAND } from '../brand/brand';
       }
       .schema-btn:hover { background: #f1f5f9; color: var(--text-title); }
       .schema-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; font-weight: 700; }
-      .lower { margin-top: 4px; }
+      .lower { margin: 0; }
+      .persona-lower { margin-top: -2px; }
     `
   ]
 })
