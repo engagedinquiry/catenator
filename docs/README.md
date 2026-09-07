@@ -27,60 +27,60 @@ If none of these sound like you, this probably isn't for you yet — and that's 
 
 For designers and writers governing intent the way design always used to, before it got surrendered one convenient decision at a time.
 
-- [Start here](creators/README.md)
-- [The design document](creators/design-document.md)
-- [Refraction](creators/refraction.md)
-- [The mechanics of refraction](creators/mechanics-of-refraction.md)
-- [Delivering with a paradigm shift](creators/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/1-creators/1-catenator-for-creators.md)
+- [The design document](personas/1-creators/2-design-document.md)
+- [Refraction](personas/1-creators/3-refraction.md)
+- [The mechanics of refraction](personas/1-creators/4-mechanics-of-refraction.md)
+- [Delivering with a paradigm shift](personas/1-creators/5-delivering-with-a-paradigm-shift.md)
 
 ## Tech writers
 
 For writers who already know a user guide could be more than a static list of steps, and want it to actually work that way.
 
-- [Start here](tech-writers/README.md)
-- [Governing document](tech-writers/governing-document.md)
-- [Refraction](tech-writers/refraction.md)
-- [The mechanics of refraction](tech-writers/mechanics-of-refraction.md)
-- [Delivering with a paradigm shift](tech-writers/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/2-tech-writers/1-catenator-for-tech-writers.md)
+- [Governing document](personas/2-tech-writers/2-governing-document.md)
+- [Refraction](personas/2-tech-writers/3-refraction.md)
+- [The mechanics of refraction](personas/2-tech-writers/4-mechanics-of-refraction.md)
+- [Delivering with a paradigm shift](personas/2-tech-writers/5-delivering-with-a-paradigm-shift.md)
 
 ## Knowledge teams
 
 For teams building AI-answering systems from a knowledge base, and tired of one confident, undifferentiated answer for every asker.
 
-- [Start here](knowledge-teams/README.md)
-- [Governing document](knowledge-teams/governing-document.md)
-- [Refraction](knowledge-teams/refraction.md)
-- [The mechanics of refraction](knowledge-teams/mechanics-of-refraction.md)
-- [Delivering with a paradigm shift](knowledge-teams/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/3-knowledge-teams/1-catenator-for-knowledge-teams.md)
+- [Governing document](personas/3-knowledge-teams/2-governing-document.md)
+- [Refraction](personas/3-knowledge-teams/3-refraction.md)
+- [The mechanics of refraction](personas/3-knowledge-teams/4-mechanics-of-refraction.md)
+- [Delivering with a paradigm shift](personas/3-knowledge-teams/5-delivering-with-a-paradigm-shift.md)
 
 ## Engineers
 
 For engineers and architects who already write ADRs, API contracts, and architecture docs, and want one vocabulary that makes a claim in one document checkable against a claim in another — including by the AI agents increasingly building from them.
 
-- [Start here](engineers/README.md)
-- [Governing document](engineers/governing-document.md)
-- [Refraction](engineers/refraction.md)
-- [The mechanics of refraction](engineers/mechanics-of-refraction.md)
-- [Delivering with a paradigm shift](engineers/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/5-engineers/1-catenator-for-engineers.md)
+- [Governing document](personas/5-engineers/2-governing-document.md)
+- [Refraction](personas/5-engineers/3-refraction.md)
+- [The mechanics of refraction](personas/5-engineers/4-mechanics-of-refraction.md)
+- [Delivering with a paradigm shift](personas/5-engineers/5-delivering-with-a-paradigm-shift.md)
 
 ## Integrators
 
 For teams that added AI answering on top of an existing product, and want it to finally respect the roles and permissions the rest of the product already enforces.
 
-- [Start here](integrators/README.md)
-- [Governing document](integrators/governing-document.md)
-- [Refraction](integrators/refraction.md)
-- [The mechanics of refraction](integrators/mechanics-of-refraction.md)
-- [Delivering with a paradigm shift](integrators/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/4-integrators/1-catenator-for-integrators.md)
+- [Governing document](personas/4-integrators/2-governing-document.md)
+- [Refraction](personas/4-integrators/3-refraction.md)
+- [The mechanics of refraction](personas/4-integrators/4-mechanics-of-refraction.md)
+- [Delivering with a paradigm shift](personas/4-integrators/5-delivering-with-a-paradigm-shift.md)
 
 ## Governing docs
 
 The actual technical standard underneath everything above — the coordinate model, the schema, refraction and delivery described precisely rather than in plain language.
 
-- [Start here](governing-docs/README.md)
-- [Schemas and specifications](governing-docs/schemas-and-specifications.md)
-- [Refraction](governing-docs/refraction.md)
-- [Delivering with a paradigm shift](governing-docs/delivering-with-a-paradigm-shift.md)
+- [Start here](personas/6-governing-docs/1-catenator.md)
+- [Schemas and specifications](personas/6-governing-docs/3-schemas-and-specifications.md)
+- [Refraction](personas/6-governing-docs/2-refraction.md)
+- [Delivering with a paradigm shift](personas/6-governing-docs/4-delivering-with-a-paradigm-shift.md)
 
 ---
 
