@@ -1,4 +1,4 @@
-# Catenator
+# Catenator for technical writers
 
 Not every technical writer needs this. If your job is describing what already shipped, in the order it happened, so support has something to point to — that's real work, but it's not what this is for.
 

@@ -1,4 +1,5 @@
-# Catenator
+# Catenator for knowledge teams
+
 
 Not every knowledge system needs this. If what you built answers simple, low-stakes questions and being wrong once in a while costs nothing, that's a reasonable thing to have shipped as-is.
 

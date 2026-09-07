@@ -1,4 +1,4 @@
-# Catenator
+# Catenator for engineers
 
 Not every system needs this. If your specs are small, stable, and read by exactly one team that already agrees on conventions, a good README and a consistent style are enough. This isn't solving a problem you have.
 

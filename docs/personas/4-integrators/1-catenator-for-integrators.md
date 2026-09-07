@@ -1,4 +1,4 @@
-# Catenator
+# Catenator for integrators
 
 Not every integration needs this. If what you added answers questions your existing access-control already scopes correctly, and nothing sensitive can leak through regardless of what's asked, that's a reasonable thing to have shipped as-is.
 

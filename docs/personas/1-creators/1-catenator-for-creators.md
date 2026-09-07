@@ -1,4 +1,4 @@
-# Catenator
+# Catenator for Creators
 
 > You do not need to speak engineering and they do not need to speak design. 
 
