@@ -1,21 +1,19 @@
-# Build instructions — reading and building from any Catenator spec
+# Build instructions — reading and building from any Catenator schema
 
-These instructions are generic. They apply to any Catenator spec, not
-just this one — the only thing that changes per app is the spec itself
-and its accompanying `build-config.yaml`. (A spec is a schema filled
-in — see the Catenator standard's own vocabulary at `docs/schema/` if
-that distinction isn't already clear.)
+These instructions are generic. They apply to any Catenator schema, not
+just this one — the only thing that changes per phase is the schema
+itself and its accompanying `build-config.yaml`.
 
-Given a spec (split across `system.yaml`, `vocabulary.yaml`, and
+Given a schema (split across `system.yaml`, `vocabulary.yaml`, and
 `components/*.yaml`) and a `build-config.yaml`, together these files
 are the complete specification for the build. Do not add features,
-personas, steps, or components not named in the spec.
+personas, steps, or components not named in the schema.
 
 Write all generated output to the path named in `build-config.yaml`'s
 `outputPath`. Do not write generated code anywhere else, and do not
 hand-edit generated output directly once produced — if something is
-wrong, fix the spec or the config and regenerate, so the spec stays
-the actual source of truth.
+wrong, fix the schema or the config and regenerate, so the schema
+stays the actual source of truth.
 
 Read in this order before writing any code:
 
@@ -41,7 +39,7 @@ For each component, implement:
 Apply `system.yaml`'s `rule.leverage-naming` throughout: where a
 component names a recognized convention (e.g. its `domain` value),
 build to that convention's standard behavior per `vocabulary.yaml`;
-where the spec states an explicit rule or number, implement exactly
+where the schema states an explicit rule or number, implement exactly
 that value — never infer a substitute.
 
 Use the technology and provider named in `build-config.yaml`. Do not
@@ -50,31 +48,24 @@ whose contract explicitly names it as swappable (check each
 component's `mustNever` list for a "depend on a specific provider"
 constraint).
 
-## Favicon (applies to every app, always)
-
-Every generated app must copy the favicon files from
-`apps/shared/assets/favicon/` into its own output's asset directory
-(e.g. `src/assets/favicon/` for Angular), and reference them in the
-app's `index.html` `<head>` with standard favicon link tags:
-
-```html
-<link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/favicon-180.png">
-```
-
-Make sure the build actually serves that asset directory (for Angular,
-add `src/assets` to the `assets` array in `angular.json`). This applies
-to every app generated from any Catenator spec, fresh build or
-component update — do not skip it, and do not substitute a different
-icon.
-
 After building, verify against every `mustNever` and `micro` rule
-across every component file explicitly — for each one, state how the
-implementation satisfies it, or flag it as unmet. Do not report the
-build complete until every constraint has a stated, verified answer.
+across every component file explicitly. Do this by following
+`apps/shared/GENERATE-COMPLIANCE-REPORT.md` exactly — the report it
+produces IS the verification, not a separate summary written
+afterward.
 
-Report back: which components were built new, which reused existing
-code (name the source), and the full mustNever/micro verification
+Save the compliance report as a NEW, timestamped file — never
+overwrite a previous report. Use the pattern:
+`apps/<app>/reports/compliance-YYYY-MM-DD-HHMM.md`. If a report
+already exists for this exact build, the new one still gets its own
+timestamp; nothing is ever replaced in place.
+
+Do not report the build complete until the compliance report exists
+as a saved file and every row in it has been filled — not until every
+constraint has a "stated, verified answer" in prose.
+
+Report back only: the path to the newly saved compliance report, and
+whether it found any "Not found" or "Conflicting" rows requiring
+attention before this build is trusted.
+, and the full mustNever/micro verification
 list, organized by component file.
