@@ -1,24 +1,20 @@
 vocabulary:
   - term: "publication"
     definition: >
-      The unit of work in this phase — a hierarchy of topics, sharing
-      one set of sources, personas, and variables. Replaces phase-0's
-      single topic as the thing being authored and refracted.
-  - term: "topic hierarchy"
+      A fixed set of topics, sharing sources, variables, and
+      personas, refracted together in one action. Unlike Topics,
+      Sources/Variables/Personas are fully editable collections.
+  - term: "fixed collection"
     definition: >
-      An arbitrary-depth tree of topics. Depth is never assumed or
-      hardcoded — a topic may have children, which may have children,
-      to whatever depth the publication actually needs. Siblings can
-      be reordered; a topic cannot be moved to a different parent in
-      this phase.
+      A collection whose members cannot be added, removed, or
+      reordered — only each member's own content may be edited.
+      Applies to Topics in this phase.
+  - term: "open collection"
+    definition: >
+      A collection supporting full add/edit/delete (and, where
+      stated, no upper count limit). Applies to Sources, Variables,
+      and Personas in this phase.
   - term: "variable substitution"
     definition: >
       A publication-level name/value pair, referenced inside topic
-      content as {{variable_name}}. Resolution is checked by Quality
-      Check, not enforced live while typing.
-  - term: "per-topic source override"
-    definition: >
-      By default every source is available to every topic. A topic's
-      own metadata can name a specific subset of sources it prefers,
-      which overrides the publication-wide default for that topic
-      only — it does not remove the source from other topics.
+      content as {{variable_name}}.

@@ -1,0 +1,71 @@
+id: "persona_generic_user_775299ba"
+name: "Generic user/creator"
+version: "1.0.0"
+schema_ref: "personas:human_end_user"
+
+schema_version: "syntaxia.schema/v1"
+
+core_domain:
+  role_type: human_end_user
+  primary_focus:
+    - user_experience
+
+preferred_posture:
+  interaction_mode: conceptual_narrative
+  view_granularity: abstract_30s
+  working_stance: "Browsing casually, wants the gist without effort."
+
+dimensions:
+  content:
+    - "What can I actually do with this feature?"
+  surface:
+    - "Plain language, no jargon, short paragraphs."
+  context:
+    - "May be a first-time or anonymous shopper."
+  trust:
+    - "Needs reassurance that nothing happens without review."
+  time:
+    - "Skims — will not read a long page top to bottom."
+
+cognitive_profile:
+  goals:
+    primary_goal: "Understand what the promotions feature does, quickly, without technical detail."
+    key_success_metrics:
+      - "Can explain the feature in one sentence after reading."
+  background:
+    domain_experience: "General consumer, no store-management or technical background."
+    mental_models:
+      - "Compares this to other everyday AI assistants (chatbots, voice assistants)."
+  thinking_style: conceptual_relationship
+  cognitive_load_threshold: minimal_skimmer
+  information_processing_bias: narrative_first
+  attitudes:
+    tolerance_for_ambiguity: high
+    stance_on_tooling: "Indifferent — cares about outcomes, not mechanisms."
+  rejection_threshold:
+    trigger_condition: "Any paragraph that requires prior technical knowledge to parse."
+    friction_points:
+      - "Jargon without explanation."
+      - "Long, unbroken blocks of text."
+  perspective: "A curious outsider looking in."
+  approach_to_life: "Prefers the simplest explanation that's still accurate."
+
+vocabulary:
+  mandated_terminology:
+    - "the assistant"
+    - "promotion"
+  prohibited_jargon:
+    - "eligibility rule"
+    - "conflict resolution"
+    - "API"
+  tone_and_style: "Warm, plain, conversational."
+
+domains:
+  ast_nodes_included:
+    - "overview"
+    - "everyday_analogy"
+  ast_nodes_excluded:
+    - "code_example"
+    - "api_reference"
+  target_artefacts:
+    - "conceptual_overview"

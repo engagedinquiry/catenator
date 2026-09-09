@@ -1,0 +1,19 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.scope.schema.json"
+title: "Scope Topic Schema"
+description: States what this guide covers, on its own, without background.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      requirements:
+        type: object
+        properties:
+          subject:
+            type: string
+            description: What this topic is about, stated explicitly so it can be evaluated on its own.
+          scope:
+            type: string
+            description: What this guide covers, and what it deliberately does not.
+        required: [subject, scope]

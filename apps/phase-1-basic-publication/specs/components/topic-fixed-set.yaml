@@ -1,0 +1,46 @@
+topic.fixed-set:
+  macro:
+    systemName: "topic.fixed-set"
+    domain: "content governance"
+    intent: >
+      Hold the publication's topics as a fixed, ordered set — not an
+      editable tree. This phase's fixture defines exactly five topics,
+      in a fixed order; nothing adds, removes, or reorders them.
+      Renamed from the earlier topic.hierarchy (recursive, fully
+      editable) to reflect this is a genuinely different, smaller
+      component, not the same one relabeled.
+    mustNever:
+      - "Provide any UI action to add, delete, or reorder a topic —
+         no 'add child topic,' no 'move up/down,' no delete button
+         anywhere in the Topics accordion section"
+      - "Assume or build support for nested topics — this fixture is
+         flat, five topics, no children, no depth at all"
+  meso:
+    personas:
+      - id: author
+        doing: "Edits each topic's own content and its source/refraction settings — never the topic list itself"
+    fields:
+      topics: "fixed array of exactly 5: {id, title, content, source, refraction} — order is part of the fixed data, never user-changeable"
+  micro:
+    - id: five-fixed-topics
+      rule: >
+        The publication has exactly these five topics, in this order,
+        permanently: Introduction, How it works, Getting started,
+        Setting up your first promotion, Troubleshooting.
+    - id: only-content-is-editable
+      rule: >
+        Each topic's title is fixed (matches the list above). Its
+        markdown content, its source.onlyUse, and its
+        refraction.personas settings are the only editable fields.
+    - id: source-only-use
+      rule: >
+        source.onlyUse, when set on a topic, narrows that topic to a
+        named subset of the publication's sources. Sources have no
+        awareness of personas or of each other — this is purely which
+        of the publication's sources a topic draws from. Default (no
+        onlyUse set): every source is used.
+    - id: refraction-personas-mutual-exclusivity
+      rule: >
+        refraction.personas.onlyFor and refraction.personas.excludeFor
+        are mutually exclusive. A topic setting both fails Quality
+        Check — never silently resolved by picking a winner.

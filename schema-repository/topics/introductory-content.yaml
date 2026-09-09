@@ -1,0 +1,16 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.introductory-content.schema.json"
+title: "Topic Introduction Schema"
+description: A brief orienting statement of what this specific topic is about.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      requirements:
+        type: object
+        properties:
+          subject:
+            type: string
+            description: What this topic is about, stated explicitly so it can be evaluated on its own.
+        required: [subject]

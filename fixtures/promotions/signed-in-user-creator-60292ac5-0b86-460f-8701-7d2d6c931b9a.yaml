@@ -1,0 +1,77 @@
+id: "persona_signed_in_user_60292ac5"
+name: "Signed-in or registered user/creator"
+version: "1.0.0"
+schema_ref: "personas:human_end_user"
+
+schema_version: "syntaxia.schema/v1"
+
+core_domain:
+  role_type: human_end_user
+  primary_focus:
+    - operational_ex
+    - user_experience
+
+preferred_posture:
+  interaction_mode: visual_form
+  view_granularity: functional_standard
+  working_stance: >-
+    A store owner with an account, actually doing the task — not just
+    reading about it. Context varies: first-time (needs reassurance)
+    or returning (wants efficiency).
+
+dimensions:
+  content:
+    - "What do I actually need to do, step by step?"
+  surface:
+    - "Task-oriented headings, short steps, concrete examples."
+  context:
+    - "Signed in, has an account, may be first-time or returning."
+  trust:
+    - "First-time: needs the review-before-apply safeguard spelled out clearly. Returning: already trusts it, wants speed."
+  time:
+    - "Will read a full procedure if it's clearly the one they need."
+
+cognitive_profile:
+  goals:
+    primary_goal: "Successfully create or manage a real promotion for their store."
+    key_success_metrics:
+      - "Completes the procedure without needing outside help."
+      - "Understands what to do if something goes wrong."
+  background:
+    domain_experience: "Runs or helps run an online store; comfortable with everyday business software."
+    mental_models:
+      - "Compares this to other dashboard-based tools they already use."
+  thinking_style: procedural_systematic
+  cognitive_load_threshold: task_focused_chunker
+  information_processing_bias: visual_first
+  attitudes:
+    tolerance_for_ambiguity: low
+    stance_on_tooling: "Wants tools that just work, with clear feedback when they don't."
+  rejection_threshold:
+    trigger_condition: "A step that doesn't say what happens next, or what to check if it fails."
+    friction_points:
+      - "Missing confirmation of what the assistant actually did."
+      - "No guidance when something goes wrong."
+  perspective: "A practitioner who needs this to work reliably."
+  approach_to_life: "Pragmatic — wants the task done correctly, not an education in how it works."
+
+vocabulary:
+  mandated_terminology:
+    - "the assistant"
+    - "review before applying"
+    - "promotion"
+  prohibited_jargon:
+    - "API"
+    - "conflict resolution algorithm"
+  tone_and_style: "Clear, direct, step-oriented."
+
+domains:
+  ast_nodes_included:
+    - "procedure"
+    - "prerequisites"
+    - "troubleshooting_issue"
+  ast_nodes_excluded:
+    - "api_reference"
+  target_artefacts:
+    - "task_procedure"
+    - "troubleshooting_guidance"

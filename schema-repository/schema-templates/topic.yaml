@@ -1,0 +1,334 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.schema.json"
+title: "Syntaxia Topic Definition Schema"
+description: >-
+  A topic's front matter fenced by `---`, followed by the markdown
+  body as free text.
+type: object
+required: [rawContent, frontMatter]
+
+properties:
+  isPublication:
+    type: boolean
+    default: false
+    description: >-
+      A publication is a topic with this set to true. Its `topics`
+      array is the publication's topic list, and its own `content` is
+      typically empty.
+
+  rawContent:
+    type: string
+    description: >-
+      The complete file content: YAML front matter fenced by `---`,
+      followed by the markdown body as free text. Front matter and
+      body are extracted from this string, not stored separately. At
+      minimum, a valid rawContent contains a parseable front matter
+      block — the markdown body itself may be empty.
+
+  frontMatter:
+    allOf:
+      - $ref: "base.yaml"
+      - type: object
+        required: [id, title, schema_ref]
+        properties:
+          id:
+            description: This topic's own identifier, assigned once at creation.
+            example: "top-auth-rotation"
+          title:
+            description: This topic's display title.
+            example: "Service authentication and key rotation"
+          description:
+            description: A short summary of what this topic covers.
+            example: "Every request to {{product_name}} has to prove who it is."
+
+          summary:
+            type: string
+            description: >-
+              Read only if `description` is absent — checked first,
+              this is the fallback.
+
+          default_persona_id:
+            type: string
+            description: One persona id, "written for."
+            example: "systems_architects"
+          audience:
+            type: string
+            description: >-
+              Read only if `default_persona_id` is absent — same
+              fallback order as description/summary above.
+
+          personas:
+            type: array
+            items:
+              type: string
+            description: The "lenses" — additional personas this topic also serves.
+            example: ["systems_architects", "integration_developers", "administrators"]
+
+          dimension_vars:
+            $ref: "#/dimension-vars"
+            description: >-
+              Author-written notes on this topic's intent, per
+              dimension. See dimension-vars below.
+
+          default_vars:
+            type: object
+            additionalProperties:
+              type: string
+            description: >-
+              {name: value} pairs. A variable's value here OVERRIDES
+              the publication-level value of the same name, for this
+              topic only. A variable defined at the publication level
+              but absent here still applies globally, unchanged; a
+              variable defined here that doesn't exist at the
+              publication level is local to this topic.
+            example:
+              base_url: "https://api.cognitasearch.io/v2"
+              token_expiry_hours: "24 hours"
+
+          sources:
+            type: object
+            description: >-
+              The grounding material this topic draws on, keyed by
+              role, not a flat array.
+            properties:
+              decisions:
+                type: array
+                items:
+                  type: string
+                description: Source ids backing a design or architecture decision.
+              references:
+                type: array
+                items:
+                  type: string
+                description: Source ids used as general reference material.
+              context:
+                type: array
+                items:
+                  type: string
+                description: Source ids providing background context.
+              adr:
+                type: array
+                items:
+                  type: string
+                description: Source ids pointing to architecture decision records.
+            additionalProperties:
+              type: array
+              items:
+                type: string
+              description: An unlisted role is preserved if already present.
+            example:
+              adr: ["SRC-ADR-03"]
+              references: ["SRC-REF-05"]
+              context: ["SRC-POL-01", "SRC-POL-02"]
+
+          schema_ref:
+            type: string
+            description: >-
+              Which specific type schema this topic conforms to.
+              Two namespaces: topics:* when isPublication is false
+              or absent; publications:* when isPublication is true.
+              Open-ended here deliberately — each type-specific
+              schema (e.g. topics/introduction.yaml) narrows this to
+              its own const value; new types are added by creating a
+              new type schema, never by editing this field.
+
+          version:
+            type: string
+            description: This topic's own version number, independent of the product's version.
+            example: "1.0.0"
+
+          governing:
+            type: boolean
+            description: This topic's content is governing/authoritative source material.
+
+          governed:
+            type: boolean
+            default: true
+            description: >-
+              Whether a refracted topic's output is treated as
+              governed (authoritative, locked). An author or admin can
+              turn this off to release that output from governed
+              status.
+
+          status:
+            type: string
+            enum: ["draft", "in-review", "approved"]
+            description: This topic's current editorial state.
+
+          parts:
+            type: array
+            description: >-
+              Which sub-topics were concatenated to produce this
+              topic's consolidated rendering — traceable back to the
+              real, individually-stored part files.
+            items:
+              type: object
+              required: [schema, id]
+              properties:
+                schema:
+                  type: string
+                  description: Which type schema this part conforms to.
+                  example: "introductory-content"
+                id:
+                  type: string
+                  description: This part's own real id.
+                  example: "9c5dc0d3-8fda-4025-b717-5130e54560d9"
+
+        additionalProperties: false
+
+  content:
+    oneOf:
+      - $ref: "#/topic-reference"
+      - $ref: "#/content"
+    description: >-
+      Either the topic's own content, or a reference to another topic
+      embedded in its place. See topic-reference below.
+
+  topics:
+    type: array
+    items:
+      $ref: "#/topic-reference"
+    description: >-
+      Child topics, as references by id — distinct from `content`
+      above (this is the topic's own children; content is the
+      topic's own material).
+
+  requirements:
+    type: object
+    description: >-
+      The specific, required facts this topic's type demands. Empty
+      and open here — a type-specific schema (e.g.
+      purpose-and-overview) narrows this to its own required fields
+      via allOf, the same way schema_ref is narrowed per type.
+
+additionalProperties: false
+
+# ============================================================
+topic-reference:
+  type: object
+  required: [topicId]
+  description: >-
+    A pointer to a topic that exists once, independently — used both
+    by `topics` (a topic's own children) and by `content` (when a
+    topic is embedded in another topic's content). The same topicId
+    can be referenced from more than one place, each with its own
+    behavior for this reference.
+  properties:
+    topicId:
+      type: string
+      description: References a topic by its id — not an embedded copy of its data.
+    includeChildrenInOutput:
+      type: boolean
+      default: true
+      description: >-
+        Whether the referenced topic's own `topics` (its children)
+        are pulled into refraction/output wherever this reference is
+        used.
+  additionalProperties: false
+
+# ============================================================
+content:
+  allOf:
+    - $ref: "base.yaml"
+    - type: object
+      description: A topic's own content, as a pointer to externally-stored material.
+      properties:
+        value:
+          type: string
+          description: Inline content, as a fallback when not stored externally.
+        type:
+          type: string
+          enum: ["text", "html", "markdown", "json"]
+          description: The format this content is written in.
+        repository:
+          type: string
+          description: URL or path to the repository where the content is stored.
+        repositoryType:
+          type: string
+          enum: ["github", "gitlab", "bitbucket", "local"]
+          description: Which kind of repository this content is stored in.
+        repositoryUrl:
+          type: string
+          description: The full URL to the repository itself.
+        nodeId:
+          type: string
+          description: Unique identifier for the node in the repository.
+        nodeUrl:
+          type: string
+          description: The API/raw URL to fetch this specific node's content.
+        nodeType:
+          type: string
+          enum: ["file", "directory"]
+          description: Whether this node is a single file or a directory.
+        nodeHtmlUrl:
+          type: string
+          description: URL to view the node in a web browser.
+
+        input:
+          type: object
+          description: >-
+            What was supplied to generate this content, when it was
+            generated rather than authored directly.
+          properties:
+            subject:
+              type: string
+              description: What this content should be about.
+            persona:
+              type: string
+              description: Which persona this content was generated for.
+            instructions:
+              type: string
+              description: Additional guidance given to the generator.
+          required: [subject]
+
+        generatedAt:
+          type: string
+          format: date-time
+          description: When this content was generated, if it was.
+        reviewed:
+          type: boolean
+          default: false
+          description: Whether a human has reviewed generated output before it's trusted as governing.
+
+      additionalProperties: false
+
+# ============================================================
+dimension-vars:
+  description: >-
+    Optional author-written notes on intent, per dimension, that can
+    be taken into consideration during refraction and used to assist
+    review and validation.
+  type: object
+  properties:
+    content:
+      type: array
+      description: Short phrases describing the content dimension of the topic.
+      items:
+        type: string
+    surface:
+      type: array
+      description: Short phrases describing the surface dimension of the topic.
+      items:
+        type: string
+    context:
+      type: array
+      description: Short phrases describing the context dimension of the topic.
+      items:
+        type: string
+    trust:
+      type: array
+      description: Short phrases describing the trust dimension of the topic.
+      items:
+        type: string
+    time:
+      type: array
+      description: Short phrases describing the time dimension of the topic.
+      items:
+        type: string
+    working_stance:
+      type: string
+      description: A short phrase describing the author's intended posture for this topic.
+    rejection_trigger:
+      type: string
+      description: What would make this topic wrong or need rewriting.
+  additionalProperties: false

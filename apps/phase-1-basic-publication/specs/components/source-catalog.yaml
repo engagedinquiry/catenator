@@ -1,0 +1,26 @@
+source.catalog:
+  macro:
+    systemName: "source.catalog"
+    domain: "content governance"
+    intent: >
+      Hold the publication's sources as an OPEN collection — add,
+      edit, delete, no fixed count. Each topic uses all sources by
+      default, or a named subset via its own onlyUse field.
+    mustNever:
+      - "Warn about or block deletion based on downstream impact —
+         deleting a source that a topic's onlyUse references is
+         simply allowed; no safeguard is built in this phase"
+  meso:
+    personas:
+      - id: author
+        doing: "Adds, edits, deletes sources freely"
+    fields:
+      sources: "open array of {id, title, reference, description}"
+  micro:
+    - id: full-crud
+      rule: "Add, edit, delete — no fixed count, no reorder requirement stated."
+    - id: default-is-all-sources
+      rule: >
+        A topic with no source.onlyUse set uses every source in this
+        catalog. onlyUse, when present, narrows that topic to the
+        named subset only.

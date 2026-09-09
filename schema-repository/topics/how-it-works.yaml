@@ -1,0 +1,29 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.how-it-works.schema.json"
+title: "How It Works Topic Schema"
+description: >-
+  Explains the mechanism behind a feature — an introduction, basic
+  and core concepts (both optional), starting conditions, the
+  mechanism itself, and the result.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      title:
+        example: How it works
+      content:
+        type: array
+        minItems: 4
+        maxItems: 6
+        description: >-
+          Up to six parts, in this fixed order. Basic and core
+          concepts (positions 2 and 3) are optional; the rest are
+          required.
+        prefixItems:
+          - $ref: "introductory-content.yaml"
+          - $ref: "basic-concepts.yaml"
+          - $ref: "core-concepts.yaml"
+          - $ref: "starting-conditions.yaml"
+          - $ref: "mechanism-or-process.yaml"
+          - $ref: "process-result.yaml"

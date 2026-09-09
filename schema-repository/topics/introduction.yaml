@@ -1,0 +1,21 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.introduction.schema.json"
+title: "Introduction Topic Schema"
+description: An orienting overview for a reader new to it.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      title:
+        example: Introduction
+      content:
+        type: array
+        minItems: 4
+        maxItems: 4
+        description: The required parts of an introduction, in order.
+        prefixItems:
+          - $ref: "introductory-content.yaml"
+          - $ref: "purpose-and-overview.yaml"
+          - $ref: "target-audience.yaml"
+          - $ref: "context-and-scope.yaml"

@@ -1,0 +1,43 @@
+persona.catalog:
+  macro:
+    systemName: "persona.catalog"
+    domain: "content governance"
+    intent: >
+      Hold the publication's personas as an OPEN, UNCAPPED collection
+      — add, edit, delete, no maximum count. This is a deliberate
+      change from earlier phases' fixed cap of 2: nothing in the
+      refraction mechanism (one compiler call per persona) depends on
+      a small number, so the cap is dropped entirely rather than
+      raised to a new fixed value.
+    mustNever:
+      - "Enforce any maximum persona count"
+      - "Warn about or block deletion based on downstream impact —
+         deleting a persona simply removes it and any refracted
+         output tied to it, with no safeguard"
+      - "Derive a persona's id from its name — id is positional,
+         assigned once at creation, per persona-id-is-positional"
+  meso:
+    personas:
+      - id: author
+        doing: "Adds, edits, deletes personas freely, no count limit"
+    fields:
+      personas: "open array of {id, name, summary, dimensions[]} — no max"
+  micro:
+    - id: full-crud-uncapped
+      rule: "Add, edit, delete — no fixed count, no upper bound."
+    - id: persona-id-is-positional
+      rule: >
+        Each persona's id is assigned by authoring order
+        (persona-0, persona-1, persona-2, ...), never derived from its
+        name, never changes once assigned.
+    - id: five-fixed-dimensions
+      rule: >
+        Dimensions are drawn only from this spec's own
+        system.yaml contentScope.fixedDimensions (Surface, Content,
+        Context, Time, Trust).
+    - id: context-expresses-first-time-vs-returning
+      rule: >
+        A persona representing a signed-in/registered user does not
+        need a separate persona for first-time vs. returning use —
+        that distinction is expressed through the persona's Context
+        dimension, not through creating an additional persona.

@@ -1,0 +1,70 @@
+id: "persona_tech_admin_ea98010e"
+name: "Tech admin/developer"
+version: "1.0.0"
+schema_ref: "personas:human_tech_sme"
+
+schema_version: "syntaxia.schema/v1"
+
+core_domain:
+  role_type: human_tech_sme
+  primary_focus:
+    - machine_ast
+    - domain_logic
+
+preferred_posture:
+  interaction_mode: ide_embedded
+  view_granularity: deep_technical
+  working_stance: "Integrating or configuring the feature at a technical level — wants mechanism, not marketing framing."
+
+dimensions:
+  content:
+    - "What is the actual mechanism — inputs, checks, outputs?"
+  surface:
+    - "Precise terminology, structured detail, no oversimplification."
+  context:
+    - "Technical role, configuring or troubleshooting on behalf of others."
+  trust:
+    - "Wants to know exactly what's checked, when, and what happens on failure — no hand-waving."
+  time:
+    - "Will read exhaustively if the content is precise; abandons quickly if it's vague."
+
+cognitive_profile:
+  goals:
+    primary_goal: "Understand precisely how the conflict-checking and application mechanism works, to configure or debug it."
+    key_success_metrics:
+      - "Can predict what the system will do in an edge case without testing it."
+  background:
+    domain_experience: "Technical integrator or store platform administrator."
+    mental_models:
+      - "Thinks in terms of inputs, validation rules, and system state."
+  thinking_style: deterministic_algorithmic
+  cognitive_load_threshold: exhaustive_parser
+  information_processing_bias: code_first
+  attitudes:
+    tolerance_for_ambiguity: zero
+    stance_on_tooling: "Evaluates tools critically — wants to know exact behavior and limits."
+  rejection_threshold:
+    trigger_condition: "Any claim about system behavior with no specified mechanism or edge-case handling."
+    friction_points:
+      - "Marketing language substituting for a real explanation."
+      - "Undefined behavior in edge cases (e.g. what exactly counts as a conflict)."
+  perspective: "An engineer who has to be able to defend how this works to their own team."
+  approach_to_life: "Wants to fully understand a system before trusting it in production."
+
+vocabulary:
+  mandated_terminology:
+    - "eligibility rule"
+    - "conflict check"
+    - "discount type"
+  prohibited_jargon: []
+  tone_and_style: "Precise, technical, unembellished."
+
+domains:
+  ast_nodes_included:
+    - "mechanism_explanation"
+    - "starting_conditions"
+    - "process_result"
+  ast_nodes_excluded:
+    - "everyday_analogy"
+  target_artefacts:
+    - "mechanism_explanation"

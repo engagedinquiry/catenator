@@ -1,0 +1,59 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.source.schema.json"
+title: "Syntaxia Source Definition Schema"
+description: >-
+  Grounding/reference material a topic can cite. A source is a
+  document, so it extends base for lifecycle history.
+
+allOf:
+  - $ref: "base.yaml"
+  - type: object
+    required: [name]
+    properties:
+      name:
+        type: string
+        description: >-
+          The source's own name, distinct from base's `title`.
+        example: "Rate limiting policy"
+
+      type:
+        type: string
+        description: The kind of source this is.
+
+      summary:
+        type: string
+        description: A short summary of this source's content.
+
+      rawContent:
+        type: string
+        description: >-
+          The source's own raw material as text — a plain string,
+          not the front-matter-plus-body format a Topic's rawContent
+          uses.
+
+      reference:
+        type: string
+        description: A citation or pointer to where this source's claims can be verified.
+
+      url:
+        type: string
+        format: uri
+        description: A link to the source material.
+
+      copyright:
+        type: string
+        description: Copyright holder or notice for this source material.
+
+      license:
+        type: string
+        description: The usage license or terms governing this source material.
+
+      limitsOnUse:
+        type: string
+        description: Restrictions on how this source material may be used.
+
+      content:
+        $ref: "topic.yaml#/content"
+        description: The source's own content, when stored as a repository pointer or inline value.
+
+    additionalProperties: false

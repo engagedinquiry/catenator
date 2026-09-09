@@ -1,0 +1,19 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.proccedure-prerequisites.schema.json"
+title: "Procedure Prerequisites Topic Schema"
+description: What must be true or in place before this procedure can be followed.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      requirements:
+        type: object
+        properties:
+          procedure:
+            type: string
+            description: Which procedure this is, stated explicitly so this part can be evaluated on its own.
+          prerequisites:
+            type: string
+            description: What must already be true or in place before starting.
+        required: [procedure, prerequisites]

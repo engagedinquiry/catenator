@@ -1,0 +1,19 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.proccedure-steps.schema.json"
+title: "Procedure Steps Topic Schema"
+description: The actual ordered actions that make up this procedure.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      requirements:
+        type: object
+        properties:
+          procedure:
+            type: string
+            description: Which procedure this is, stated explicitly so this part can be evaluated on its own.
+          steps:
+            type: string
+            description: The ordered actions to take.
+        required: [procedure, steps]

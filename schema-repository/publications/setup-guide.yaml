@@ -1,0 +1,32 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.publication.feature-guide.schema.json"
+title: "Feature Guide Publication Schema"
+description: >-
+  A guide about one specific feature. Up to five topics, in this
+  fixed order — introduction, how it works, getting started, a
+  procedure, troubleshooting — though not all five are required.
+
+allOf:
+  - $ref: "guide.yaml"
+  - type: object
+    properties:
+      frontMatter:
+        allOf:
+          - type: object
+            properties:
+              schema_ref:
+                const: "publications:feature-guide"
+      topics:
+        type: array
+        minItems: 5
+        maxItems: 5
+        description: >-
+          Up to five topic entries, in this fixed order, each
+          conforming to the matching type schema. At least two are
+          required; the rest are optional.
+        prefixItems:
+          - $ref: "../schema-templates/topic.yaml#/topic-reference"
+          - $ref: "../schema-templates/topic.yaml#/topic-reference"
+          - $ref: "../schema-templates/topic.yaml#/topic-reference"
+          - $ref: "../schema-templates/topic.yaml#/topic-reference"
+          - $ref: "../schema-templates/topic.yaml#/topic-reference"

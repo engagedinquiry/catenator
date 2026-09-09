@@ -1,0 +1,23 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.publication.guide.schema.json"
+title: "Guide Publication Schema"
+description: A narrative, user-facing publication about one feature.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    required: [isPublication, topics]
+    properties:
+      isPublication:
+        const: true
+      frontMatter:
+        allOf:
+          - type: object
+            properties:
+              schema_ref:
+                const: "publications:guide"
+      topics:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../schema-templates/topic.yaml#/topic-reference"

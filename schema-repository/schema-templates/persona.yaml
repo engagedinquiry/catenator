@@ -1,0 +1,294 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.persona.schema.json"
+title: "Syntaxia Persona Definition Schema"
+description: >-
+  Catenator specification contract defining psycho-cognitive persona
+  bounds, prioritized attention areas, and rejection thresholds. A
+  persona is a document, so it extends base for lifecycle history.
+
+allOf:
+  - $ref: "base.yaml"
+  - type: object
+    required:
+      - schema_version
+      - id
+      - name
+      - version
+      - schema_ref
+      - core_domain
+      - preferred_posture
+      - cognitive_profile
+      - vocabulary
+      - domains
+
+    properties:
+      schema_version:
+        type: string
+        enum: ["syntaxia.schema/v1"]
+        description: Which version of the Catenator persona schema this document conforms to.
+
+      id:
+        type: string
+        pattern: "^persona_[a-z0-9_]+$"
+        description: Unique snake_case identifier slug for the persona contract.
+        example: "persona_rn_respiratory_er"
+
+      name:
+        type: string
+        description: Human-readable display name.
+        example: "Registered Nurse (Respiratory ER)"
+
+      version:
+        type: string
+        pattern: "^\\d+\\.\\d+\\.\\d+$"
+        description: Semantic version string.
+        example: "1.0.0"
+
+      core_domain:
+        type: object
+        description: Taxonomy mapping the persona to its fundamental ecosystem role and prioritized areas of attention.
+        required: [role_type, primary_focus]
+        properties:
+          role_type:
+            type: string
+            description: Classification of the persona's fundamental role.
+            enum:
+              - relay
+              - human_tech_sme
+              - human_domain_sme
+              - human_end_user
+              - human_social
+              - human_executive
+            example: "human_domain_sme"
+
+          primary_focus:
+            type: array
+            description: >-
+              An ordered array prioritizing the specific domains, angles,
+              or topics this persona cares about most. Index 0 is the
+              highest priority.
+            minItems: 1
+            items:
+              type: string
+              enum:
+                - machine_ast
+                - operational_ex
+                - domain_logic
+                - user_experience
+                - team_cohesion
+                - strategic_exec
+            example: ["operational_ex", "domain_logic"]
+
+      preferred_posture:
+        type: object
+        description: How this persona prefers to receive and interact with content.
+        required: [interaction_mode, view_granularity, working_stance]
+        properties:
+          interaction_mode:
+            type: string
+            description: The format this persona prefers to receive content in.
+            enum:
+              - headless_pipeline
+              - ide_embedded
+              - visual_form
+              - conceptual_narrative
+              - executive_summary
+          view_granularity:
+            type: string
+            description: How much depth this persona wants by default.
+            enum:
+              - abstract_30s
+              - functional_standard
+              - deep_technical
+          working_stance:
+            type: string
+            description: A short phrase describing the active posture of the user.
+
+      dimensions:
+        type: object
+        description: >-
+          The persona's actual concerns within each of the five Catenator
+          dimensions — arrays of free-text strings, not a boolean
+          selection of which dimensions apply.
+        properties:
+          content:
+            type: array
+            description: This persona's concerns within the content dimension.
+            items:
+              type: string
+          surface:
+            type: array
+            description: This persona's concerns within the surface dimension.
+            items:
+              type: string
+          context:
+            type: array
+            description: This persona's concerns within the context dimension.
+            items:
+              type: string
+          trust:
+            type: array
+            description: This persona's concerns within the trust dimension.
+            items:
+              type: string
+          time:
+            type: array
+            description: This persona's concerns within the time dimension.
+            items:
+              type: string
+        additionalProperties:
+          type: array
+          items:
+            type: string
+
+      cognitive_profile:
+        type: object
+        description: This persona's cognitive makeup — how it thinks, processes information, and what causes it to reject content.
+        required:
+          - goals
+          - background
+          - thinking_style
+          - cognitive_load_threshold
+          - information_processing_bias
+          - attitudes
+          - rejection_threshold
+          - perspective
+          - approach_to_life
+        properties:
+          goals:
+            type: object
+            description: What this persona is trying to accomplish, and how success is measured.
+            required: [primary_goal, key_success_metrics]
+            properties:
+              primary_goal:
+                type: string
+                description: This persona's main objective.
+              key_success_metrics:
+                type: array
+                description: How this persona would know they've succeeded.
+                items:
+                  type: string
+
+          background:
+            type: object
+            description: This persona's relevant prior experience and how they already think about this domain.
+            required: [domain_experience, mental_models]
+            properties:
+              domain_experience:
+                type: string
+                description: This persona's relevant prior experience in this domain.
+              mental_models:
+                type: array
+                description: Existing frameworks or comparisons this persona already thinks in terms of.
+                items:
+                  type: string
+
+          thinking_style:
+            type: string
+            description: How this persona characteristically reasons through content.
+            enum:
+              - deterministic_algorithmic
+              - procedural_systematic
+              - functional_narrative
+              - conceptual_relationship
+              - strategic_holistic
+
+          cognitive_load_threshold:
+            type: string
+            description: How much this persona is willing to read or process before disengaging.
+            enum:
+              - minimal_skimmer
+              - task_focused_chunker
+              - functional_narrative_reader
+              - exhaustive_parser
+
+          information_processing_bias:
+            type: string
+            description: Which form of information this persona reaches for or trusts first.
+            enum:
+              - code_first
+              - visual_first
+              - narrative_first
+              - metric_first
+              - ast_first
+
+          attitudes:
+            type: object
+            description: This persona's general stance toward uncertainty and toward tools.
+            required: [tolerance_for_ambiguity, stance_on_tooling]
+            properties:
+              tolerance_for_ambiguity:
+                type: string
+                description: How much unresolved ambiguity this persona will tolerate before it becomes a problem.
+                enum: [zero, low, moderate, high]
+              stance_on_tooling:
+                type: string
+                description: How this persona generally regards tools and tooling.
+
+          rejection_threshold:
+            type: object
+            description: What causes this persona to reject or disengage from content.
+            required: [trigger_condition, friction_points]
+            properties:
+              trigger_condition:
+                type: string
+                description: The exact scenario or content flaw that causes immediate rejection.
+              friction_points:
+                type: array
+                description: Specific things that make this persona's experience worse.
+                items:
+                  type: string
+
+          perspective:
+            type: string
+            description: The vantage point this persona views the subject from.
+          approach_to_life:
+            type: string
+            description: A short characterization of this persona's general outlook.
+
+      vocabulary:
+        type: object
+        description: The specific language this persona expects, and the language that would alienate them.
+        required: [mandated_terminology, prohibited_jargon, tone_and_style]
+        properties:
+          mandated_terminology:
+            type: array
+            description: Terms content for this persona should use.
+            items:
+              type: string
+          prohibited_jargon:
+            type: array
+            description: Terms content for this persona should avoid.
+            items:
+              type: string
+          tone_and_style:
+            type: string
+            description: The overall register content for this persona should be written in.
+
+      domains:
+        type: object
+        description: >-
+          Which categories of content this persona cares about. These
+          strings are NOT validated against any real topic-schema
+          registry — nothing currently enforces that a value here
+          corresponds to an actual, existing topic type. Matching is
+          left to the persona author's own judgment.
+        required: [ast_nodes_included, ast_nodes_excluded, target_artefacts]
+        properties:
+          ast_nodes_included:
+            type: array
+            description: Categories of content this persona is interested in.
+            items:
+              type: string
+          ast_nodes_excluded:
+            type: array
+            description: Categories of content this persona is not interested in, or should be shielded from.
+            items:
+              type: string
+          target_artefacts:
+            type: array
+            description: The kinds of deliverables this persona is most likely to seek out.
+            items:
+              type: string
+
+    additionalProperties: false

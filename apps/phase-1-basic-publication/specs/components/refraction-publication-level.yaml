@@ -4,40 +4,43 @@ refraction.publication-level:
     domain: "AI content generation"
     intent: >
       One action refracts every topic in the publication, for every
-      persona — extending phase-0-single-topic's byok-compiler.contract
-      (one persona, one topic, one call) to run across the whole
-      publication's topic tree in a single author action.
+      applicable persona, per each topic's own refraction.personas
+      scoping (or every persona, if unscoped).
     mustNever:
       - "Require a separate action per topic — one action covers the
          entire publication"
       - "Invent a value not present in a topic's own content plus its
-         resolved sources (default or override) — identical
-         grounding constraint to phase-0-single-topic's compiler,
-         applied per topic"
+         resolved sources (per source.onlyUse)"
+      - "Refract a topic for a persona excluded by that topic's own
+         refraction.personas.excludeFor, or for any persona other
+         than those named in onlyFor when onlyFor is set"
       - "Depend on a specific model provider"
   meso:
     personas:
       - id: author
-        doing: "Triggers one action; every topic is refracted for every persona"
+        doing: "Triggers one action; every applicable topic x persona pair is refracted"
     contractShape:
-      input: "for each topic in the tree, for each persona: {topicContent, resolvedSources, persona}"
+      input: "for each topic, for each persona it applies to: {topicContent, resolvedSources, persona}"
       output: "refractedOutputs keyed by {topicId, personaId}"
   micro:
     - id: one-action-many-calls
       rule: >
-        The refraction action makes one compiler call per
-        (topic × persona) pair — with an arbitrary-depth tree and up
-        to 2 personas, this can be many calls, all triggered by the
-        single action.
+        The refraction action makes one compiler call per applicable
+        (topic x persona) pair, all triggered by a single action.
     - id: resolved-sources-per-topic
       rule: >
-        Each topic's call uses its resolved source set — the
-        publication default, or its own override if
-        source.with-override.sourceOverride is set for that topic.
+        Each topic's call uses its resolved source set — all
+        publication sources by default, or the topic's own
+        source.onlyUse subset if set.
+    - id: respects-persona-scoping
+      rule: >
+        Before calling the compiler for a given topic x persona pair,
+        check that topic's refraction.personas settings. Skip the
+        call entirely if that persona is excluded by excludeFor, or
+        not included in a set onlyFor.
     - id: same-failure-behavior-as-phase-0
       rule: >
         Each individual call follows phase-0-single-topic's
-        byok-compiler.contract call-failure-behavior exactly (retry
-        once automatically, then a visible structured error) — a
-        failure on one topic's call does not block the others from
-        completing.
+        call-failure-behavior (retry once automatically, then a
+        visible structured error) — a failure on one pair does not
+        block the others.

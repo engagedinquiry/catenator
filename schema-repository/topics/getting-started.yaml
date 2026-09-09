@@ -1,0 +1,25 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.topic.getting-started.schema.json"
+title: "Getting Started Topic Schema"
+description: Where and how to start using or implementing this.
+
+allOf:
+  - $ref: "../schema-templates/topic.yaml#/topic"
+  - type: object
+    properties:
+      title:
+        example: Getting started
+      content:
+        type: array
+        minItems: 0
+        maxItems: 4
+        description: >-
+          The parts of a getting-started topic, in fixed order. None
+          are required — the array may be shorter than four — but
+          whatever IS present must appear in this exact sequence,
+          starting from position 1. No skipping or reordering.
+        prefixItems:
+          - $ref: "introductory-content.yaml"
+          - $ref: "basic-concepts.yaml"
+          - $ref: "core-concepts.yaml"
+          - $ref: "first-steps.yaml"

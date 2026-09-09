@@ -1,12 +1,51 @@
-# Build config — phase-1-basic-publication
+# Build config — phase-1-publication-with-topics
 
-specPath: "apps/phase-1-basic-publication/specs/"
-outputPath: "apps/phase-1-basic-publication/output/"
+specPath: "apps/phase-1-publication-with-topics/specs/"
+outputPath: "apps/phase-1-publication-with-topics/output/"
 
 techStack:
   frontend: "Angular"
 
+aiProvider:
+  mode: "BYOK"
+  supported: ["Claude", "Gemini"]
+  note: >
+    Any provider satisfying the refraction-publication-level
+    component's input/output shape is valid.
+
 branding:
   productName: "Catenator"
-  tagline: "Creating and Refracting — Basic Publication"
+  tagline: "Creating and Refracting — Publication"
   priorNames: ["Syntaxia", "Syntaxia Studio"]
+
+defaultFixture:
+  topics:
+    - id: intro
+      title: "Introduction"
+    - id: how-it-works
+      title: "How it works"
+    - id: getting-started
+      title: "Getting started"
+    - id: setup-first-promotion
+      title: "Setting up your first promotion"
+    - id: troubleshooting
+      title: "Troubleshooting"
+  sources:
+    - id: feature-overview
+      title: "AI-managed store promotions"
+    - id: promo-instance
+      title: "Summer Sale — promotion details"
+  variables:
+    - name: product_name
+      value: "Northwind Commerce"
+    - name: client_name
+      value: "Acme Outfitters"
+    - name: promotion_name
+      value: "Summer Sale"
+  personas:
+    - id: persona-0
+      name: "Generic user/creator"
+    - id: persona-1
+      name: "Signed-in or registered user/creator"
+    - id: persona-2
+      name: "Tech admin/developer"

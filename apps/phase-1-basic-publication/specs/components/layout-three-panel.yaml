@@ -3,34 +3,28 @@ layout.three-panel:
     systemName: "layout.three-panel"
     domain: "presentation layout"
     intent: >
-      Arrange Panel 1 (accordion navigation), Panel 2 (editor.generic),
-      and Panel 3 (guide.static-per-selection + quality-check.four-
-      checks) — excluding the left icon bar with the logo, unchanged
-      from phase-0-single-topic and the reference workspace.
+      Panel 1 (accordion: Publication, Topics, Sources, Variables,
+      Personas), Panel 2 (editor.generic), Panel 3 (Guide + Quality
+      Check) — excluding the left icon bar, unchanged from phase-0.
     mustNever:
-      - "Let this component alter publication data, topic hierarchy,
+      - "Let this component alter publication data, topic content,
          or any pipeline/refraction logic"
   meso:
     personas:
       - id: author
-        doing: "Views all three panels simultaneously; selects an item in Panel 1, edits it in Panel 2, reads guidance in Panel 3"
+        doing: "Selects an item in Panel 1, edits it in Panel 2, reads guidance in Panel 3"
     panels:
       - id: panel-1
-        content: "Accordion: Publication, Topics (tree), Variables, Sources, Personas"
+        content: "Accordion: Publication, Topics (fixed, 5), Sources (open), Variables (open), Personas (open)"
       - id: panel-2
         content: "editor.generic — the currently selected item, inline"
       - id: panel-3
         content: "Guide tab + Quality Check tab"
   micro:
     - id: accordion-sections-fixed
-      rule: >
-        Panel 1 has exactly five accordion sections in this phase:
-        Publication, Topics, Variables, Sources, Personas. Shared
-        Blocks is explicitly NOT a section in this phase.
+      rule: "Exactly five accordion sections: Publication, Topics, Sources, Variables, Personas."
     - id: narrow-viewport-notification
       rule: >
-        Below a viewport width of 768px, show a dismissible
-        notification stating the app is not optimized for small
-        screens — identical behavior to phase-0-single-topic's
-        layout.three-panel rule of the same name. This is a notice
-        only; the layout itself does not restructure.
+        Below 768px viewport width, show a dismissible notification
+        stating the app is not optimized for small screens — same
+        rule as phase-0-single-topic's layout.three-panel.

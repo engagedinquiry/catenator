@@ -1,0 +1,51 @@
+topic.scoping:
+  macro:
+    systemName: "topic.scoping"
+    domain: "content governance"
+    intent: >
+      Two independent groups of fields on each topic: which sources
+      it draws from, and which personas it's refracted for. Kept as
+      distinctly-named, separately-structured groups so they are
+      never confused with each other.
+    mustNever:
+      - "Nest onlyUse under any grouping that implies persona-
+         awareness — source.onlyUse has no relationship to personas
+         at all"
+      - "Allow a topic to set both refraction.personas.onlyFor and
+         refraction.personas.excludeFor without failing Quality Check"
+  meso:
+    personas:
+      - id: author
+        doing: "Optionally narrows a topic's sources or its persona refraction scope"
+    fields:
+      topic:
+        source:
+          onlyUse: "array of source ids — optional, default is all sources"
+        refraction:
+          personas:
+            onlyFor: "array of persona ids — optional"
+            excludeFor: "array of persona ids — optional, mutually exclusive with onlyFor"
+          # Named future siblings, NOT built in this phase:
+          # surface: ...   (the Surface dimension, applied as a
+          #                  topic-level constraint rather than a
+          #                  persona-level one)
+          # tones: [...]
+          # styles: [...]
+  micro:
+    - id: source-only-use
+      rule: >
+        source.onlyUse narrows a topic to a named subset of
+        source.catalog's sources. Default (unset): all sources apply.
+        Sources have no awareness of personas or of each other.
+    - id: refraction-personas-mutual-exclusivity
+      rule: >
+        refraction.personas.onlyFor and excludeFor are mutually
+        exclusive. A topic setting both fails quality-check — never
+        silently resolved by picking a winner.
+    - id: parked-fields-not-built
+      rule: >
+        refraction.surface, refraction.tones, refraction.styles are
+        named here as likely future siblings of refraction.personas,
+        should a topic ever need to constrain which dimensions apply
+        to it rather than which personas. Not implemented in this
+        phase.

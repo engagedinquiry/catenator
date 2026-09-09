@@ -1,0 +1,7 @@
+variables:
+  - name: product_name
+    value: "Northwind Commerce"
+  - name: client_name
+    value: "Acme Outfitters"
+  - name: promotion_name
+    value: "Summer Sale"

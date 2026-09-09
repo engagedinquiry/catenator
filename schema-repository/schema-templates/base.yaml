@@ -1,0 +1,94 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://syntaxia.io/schemas/v1/catenator.base.schema.json"
+title: "Syntaxia Base Schema"
+description: >-
+  Shared shape every object type extends — Topic, Reference, Content,
+  and Source all extend this.
+
+type: object
+properties:
+  kind:
+    type: string
+    description: >-
+      Optional discriminator field for identifying an object's type.
+      Not needed while objects live in separate, type-specific
+      collections; kept in case a future need makes a type tag
+      useful again.
+
+  id:
+    type: string
+    description: Unique identifier for the object. Optional for new objects before saving.
+  title:
+    type: string
+    description: Main title of the object.
+  description:
+    type: string
+    description: A brief description or summary of the object.
+  subtitle:
+    type: string
+    description: Optional subtitle or secondary title for the object.
+  slug:
+    type: string
+    description: URL-friendly identifier for the object, often derived from the title.
+  keywords:
+    type: array
+    items:
+      type: string
+    description: Keywords relevant to the object, used for search or filtering.
+  notes:
+    type: string
+    description: Internal notes or comments related to this object, not for public display.
+  instructions:
+    type: string
+    description: Instructions or guidelines for using or interacting with the object.
+  completed:
+    type: boolean
+    description: "Indicates the completion status of the object (e.g., draft, in_progress, finalized)."
+  published:
+    type: boolean
+    description: Whether the object has been published and is available for users to select. Managed by creator only.
+  updated:
+    type: boolean
+    description: Whether the object has pending updates in its draft version. Managed by creator only.
+  archived:
+    type: boolean
+    description: Whether the object is archived — no longer active or displayed in the list.
+  createdAt:
+    type: string
+    format: date-time
+    description: When the object was created.
+  updatedAt:
+    type: string
+    format: date-time
+    description: When the object was last updated. Absent if never updated.
+  publishedAt:
+    type: string
+    format: date-time
+    description: When the object was last published. Absent if never published.
+  archivedAt:
+    type: string
+    format: date-time
+    description: When the object was archived. Absent if never archived.
+  isEditable:
+    type: boolean
+    description: Whether the object can be edited by the user.
+  isDeletable:
+    type: boolean
+    description: Whether the object can be deleted by the user.
+
+  authors:
+    type: array
+    description: Who authored this object. An object can have more than one.
+    items:
+      $ref: "#/user"
+
+user:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      description: This user's own identifier.
+    name:
+      type: string
+      description: This user's display name.

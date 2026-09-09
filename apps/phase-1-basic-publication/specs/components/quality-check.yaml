@@ -1,14 +1,12 @@
-quality-check.four-checks:
+quality-check.publication:
   macro:
-    systemName: "quality-check.four-checks"
+    systemName: "quality-check.publication"
     domain: "content governance"
     intent: >
-      Run four validation checks against the publication, shown in
-      Panel 3's Quality Check tab, catching gaps that aren't enforced
-      live while authoring.
+      Run validation checks against the publication, shown in Panel
+      3's Quality Check tab.
     mustNever:
-      - "Enforce any of these four checks live, while typing — they
-         run only when Quality Check is explicitly run"
+      - "Enforce any of these checks live, while typing"
       - "Allow refraction to run if the persona-exists check fails"
   meso:
     personas:
@@ -16,16 +14,15 @@ quality-check.four-checks:
         doing: "Runs Quality Check before refracting; fixes whatever it flags"
     checks:
       - id: metadata-completeness
-        rule: "Every topic has at least a name filled in."
+        rule: "Every topic has a name filled in (all 5 fixed topics)."
       - id: source-reference-resolution
-        rule: "Every id in every topic's sourceOverride resolves to a real source in the publication's source list."
+        rule: "Every id in every topic's source.onlyUse resolves to a real source in source.catalog."
       - id: variable-resolution
-        rule: "Every {{variable_name}} referenced inside any topic's content is defined in the publication's Variables list."
+        rule: "Every {{variable}} referenced inside any topic's content is defined in variable.catalog."
+      - id: refraction-scoping-exclusivity
+        rule: "A topic setting both refraction.personas.onlyFor and excludeFor fails this check."
       - id: persona-exists
-        rule: "At least one persona exists in the publication before refraction is allowed to run."
+        rule: "At least one persona exists in persona.catalog before refraction is allowed to run."
   micro:
     - id: check-report-is-per-item
-      rule: >
-        A failed check names the specific topic, source id, variable
-        name, or persona gap responsible — never a generic "something
-        is wrong" message.
+      rule: "A failed check names the specific topic, source id, variable name, or persona gap — never a generic message."

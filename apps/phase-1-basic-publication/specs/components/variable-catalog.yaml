@@ -1,0 +1,23 @@
+variable.catalog:
+  macro:
+    systemName: "variable.catalog"
+    domain: "content governance"
+    intent: >
+      Hold the publication's variables as an OPEN collection — add,
+      edit, delete, no fixed count. Referenced inside topic content
+      as {{name}}.
+    mustNever:
+      - "Resolve or substitute a variable's value live while typing —
+         resolution is checked only by quality-check, not enforced
+         inline"
+  meso:
+    personas:
+      - id: author
+        doing: "Adds, edits, deletes variables freely"
+    fields:
+      variables: "open array of {name, value}"
+  micro:
+    - id: full-crud
+      rule: "Add, edit, delete — no fixed count."
+    - id: reference-syntax
+      rule: "Referenced inside topic markdown as {{name}}, matching exactly (case-sensitive)."
